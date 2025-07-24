@@ -2,8 +2,8 @@
     --black: #050505;
     --grey: #454545;
     --white: #FFFFFF;
-    --green: #39FF14;
-    --greenDark: #215414;
+    --green: #2ED813;
+    --greenDark: #1DB202;
     --orange: #FA8128;
     --orangeBurnt: #BF5700;
 
@@ -14,11 +14,14 @@
     --borderThickness: 2px;
     --borderColor: var(--orange); /* #FA8128; */
 
-    --buttonHeight: 40px;
-    --buttonWidth: 110px;
+    --buttonHeight: 35px;
+    --buttonWidth: 100px;
+    --buttonFontSize: 18px;
     --buttonHighlight: #643603;
 
-    --paddingBox 20px;
+    --paddingBox: 20px;
+
+    --dropdownWidth: 160px;
 }
 
 body {
@@ -29,14 +32,15 @@ body {
 }
 
 h1 {
-    color: var(--green);
+    color: var(--orangeBurnt);
+
     margin: 10px;
     padding: 5px;
 }
 
 p {
     color: var(--white);
-    font-size: 24px;
+    font-size: 18px;
     width: fit-content;
     align-self: flex-start;
     margin: 10px;
@@ -70,10 +74,10 @@ p {
 button {
     background-color: var(--green);
     color: var(--black);
-    font-size: 22px;
+    font-size: var(--buttonFontSize);
     cursor: pointer;
     border: none;
-    border-radius: var(0);
+    border-radius: var(--borderRad);
     width: var(--buttonWidth);
     height: var(--buttonHeight);
     margin: 0px;
@@ -89,16 +93,17 @@ button:hover {
     display: flex; /* make horizontal buttons */
     flex-direction: row;
     margin: 0px auto;
+    padding-right: 10px;
     padding-left: 10px;
 }
 
 .buttonHeader {
     background-color: var(--grey);
-    color: var(--orange);
+    color: var(--orangeBurnt);
     flex: none; /* makes buttons line up horizontally */
     height: var(--headerHeight);
     width: auto; /* Dynamically adjust the width of the button */
-    font-size: 16px;
+    font-size: var(--buttonFontSize);
     cursor: pointer;
     border: none;
     margin: 0px;
@@ -112,4 +117,72 @@ button:hover {
 .button-group {
     display: flex;
     justify-content: flex-start;
+    flex: 1;
+}
+
+
+
+/* Dropdown */
+.dropdown {
+    margin-left: auto;
+    position: relative;
+    display: inline-block;
+    border-radius: 0px;
+}
+.dropdown-wrapper {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+.dropbtn {
+    background-color: var(--black);
+    color: var(--white);
+    right: 0; /* keeps it on-screen */
+    height: calc(var(--headerHeight) - 5px); /* Make sure this variable exists! */
+    width: var(--dropdownWidth);
+    font-size: var(--buttonFontSize);
+    border-radius: 0px;
+    cursor: pointer;
+    border: none;
+    white-space: nowrap;
+    padding: 10px;
+    padding-right: 10px;
+    display: flex;
+    align-items: center; /* ⬅️ vertically centers contents */
+    justify-content: center;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0; /* keeps it on-screen */
+    background-color: var(--grey);
+    width: var(--dropdownWidth);
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+    z-index: 1;
+    flex-direction: column;
+    border-radius: 0px; /* square */
+}
+
+.dropdown-content a {
+    color: var(--white);
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+    border-radius: 0px; /* square corners on menu items */
+}
+
+.dropdown-content a:hover {
+    background-color: var(--greenDark);
+    color: var(--orange);
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown:hover .dropbtn {
+    background-color: var(--greenDark);
+    color: var(--orange);
 }

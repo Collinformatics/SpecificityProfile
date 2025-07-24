@@ -18,3 +18,16 @@ function clickButton() {
         console.error('ERROR: ', error);
     });
 }
+
+function pageProcessDNA() {
+    window.location.href = "/processDNA";
+}
+
+function pageFilterAA() {
+    window.location.href = "/filterAA";
+}
+
+function pageFilterMotif() {
+    window.location.href = "/filterMotif";
+}
+

@@ -11,15 +11,28 @@
         <!-- Header Buttons -->
         <div class="container-header">
             <div class="button-group">
-                <button class="buttonHeader" onclick="clickButton()">Process DNA</button>
-                <button class="buttonHeader" onclick="clickButton()">Filter AA</button>
-                <button class="buttonHeader" onclick="clickButton()">Filter Motif</button>
+                <button class="buttonHeader" onclick="pageProcessDNA()">Process DNA</button>
+                <button class="buttonHeader" onclick="pageFilterAA()">Filter AA</button>
+                <button class="buttonHeader" onclick="pageFilterMotif()">Filter Motif</button>
+            </div>
+
+            <!-- Header Dropdown -->
+            <div class="dropdown-wrapper">
+                <div class="dropdown">
+                  <button class="dropbtn">Select Enzyme</button>
+                      <div class="dropdown-content">
+                        <a href="/about">About</a>
+                        <a href="/help">Help</a>
+                        <a href="/contact">Contact</a>
+                      </div>
+                  </div>
             </div>
         </div>
 
+
         <!-- Body Buttons -->
         <div class="box">
-            <h1>It's a web application!</h1>
+            <h1>Website!</h1>
             <p>Press the button</p>
             <div class="form-group">
                 <button type="button" onclick="clickButton()" class="button">Click Me</button>

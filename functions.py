@@ -7,3 +7,18 @@ class WebApp:
         print(f'Received data: {message}')
 
         return {'key': 'Returned data'}
+
+    def evalDNA(self):
+        print('Processing DNA')
+
+        return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
+
+    def filterAA(self):
+        print('Processing Substrates')
+
+        return {'AA': 'VEHTVALKQNR'}
+
+    def filterMotif(self):
+        print('Filtering Substrates')
+
+        return {'Motif': 'TVALK'}

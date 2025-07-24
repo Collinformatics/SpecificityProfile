@@ -23,6 +23,18 @@ def run():
 def home():
     return render_template('home.html')
 
+@app.route('/processDNA')
+def processDNA():
+    return render_template('processDNA.html')
+
+@app.route('/filterAA')
+def filterAA():
+    return render_template('filterAA.html')
+
+@app.route('/filterMotif')
+def filterMotif():
+    return render_template('filterMotif.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
