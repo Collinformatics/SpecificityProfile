@@ -135,9 +135,9 @@ button:hover {
     align-items: center;
 }
 .dropbtn {
-    background-color: var(--black);
-    color: var(--white);
-    right: 0; /* keeps it on-screen */
+    background-color: var(--grey);
+    color: var(--orangeBurnt);
+    right: 0; /* Keeps it on-screen */
     height: calc(var(--headerHeight) - 5px); /* Make sure this variable exists! */
     width: var(--dropdownWidth);
     font-size: var(--buttonFontSize);
@@ -148,33 +148,35 @@ button:hover {
     padding: 10px;
     padding-right: 10px;
     display: flex;
-    align-items: center; /* ⬅️ vertically centers contents */
+    align-items: center; /* Vertically centers contents */
     justify-content: center;
 }
 
 .dropdown-content {
+    background-color: var(--grey);
+    color: var(--white);
+    width: var(--dropdownWidth);
     display: none;
     position: absolute;
-    right: 0; /* keeps it on-screen */
-    background-color: var(--grey);
-    width: var(--dropdownWidth);
+    right: 0; /* Keeps it on-screen */
     box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
     z-index: 1;
     flex-direction: column;
-    border-radius: 0px; /* square */
+    border-radius: 0px;
 }
 
 .dropdown-content a {
     color: var(--white);
-    padding: 12px 16px;
+    padding: 10px 5px;
     text-decoration: none;
     display: block;
-    font-size: 14px;
-    border-radius: 0px; /* square corners on menu items */
+    font-size: calc(var(--buttonFontSize) - 2px);
+    border-radius: 0px;
+    border: 1px solid var(--orange);
 }
 
 .dropdown-content a:hover {
-    background-color: var(--greenDark);
+    background-color: var(--black);
     color: var(--orange);
 }
 
@@ -183,6 +185,6 @@ button:hover {
 }
 
 .dropdown:hover .dropbtn {
-    background-color: var(--greenDark);
+    background-color: var(--grey);
     color: var(--orange);
 }
