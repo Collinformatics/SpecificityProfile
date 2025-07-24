@@ -1,0 +1,96 @@
+:root {
+    --black: #050505;
+    --grey: #454545;
+    --white: #FFFFFF;
+    --green: #39FF14;
+    --greenDark: #24DF00;
+
+    --borderRad: 5px;
+    --borderThickness: 2px;
+
+    --buttonHeight: 40px;
+    --buttonWidth: 110px;
+}
+
+body {
+    background-color: var(--black);
+    margin: 0;
+    padding: 5;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+h1 {
+    color: var(--green);
+    margin: 10px;
+    padding: 5px;
+}
+
+p {
+    color: var(--white);
+    font-size: 24px;
+    width: fit-content;
+    align-self: flex-start;
+    margin: 10px;
+    padding: 5px;
+}
+
+.box {
+    background-color: var(--grey);
+    margin: 20px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;  /* Center horizontally */
+    align-items: center;      /* Center vertically */
+}
+
+.form-group {
+    color: var(--green);
+    border-radius: 10px;
+    border: 0px solid var(--white);
+    height: 55px;
+    max-width: 1000px;
+    line-height: 2;
+    margin: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+button {
+    background-color: var(--green);
+    color: var(--black);
+    font-size: 22px;
+    cursor: pointer;
+    border: none;
+    border-radius: var(--borderRad);
+    width: var(--buttonWidth);
+    height: var(--buttonHeight);
+    margin: 0px;
+}
+button:hover {
+    background-color: var(--greenDark);
+}
+
+.container-header {
+    border-bottom: var(--borderThickness) solid var(--colorBG);
+    width: 100%;
+    height: 55px;
+    display: flex; /* make horizontal buttons */
+    flex-direction: row;
+    margin: 0px auto;
+    padding: 0px;
+}
+
+.buttonHeader {
+   background-color: var(--black);
+    color: var(--white);
+    flex: 1; /* makes buttons line up horizontally */
+    font-size: 18px;
+    cursor: pointer;
+    border: none;
+    margin: 0px;
+}
+.buttonHeader:hover {
+    background-color: var(--greenDark);
+}
