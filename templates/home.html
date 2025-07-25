@@ -8,8 +8,9 @@
         <title>Enzyme Profiling</title>
     </head>
     <body>
-        <!-- Header Buttons -->
+        <!-- Header -->
         <div class="container-header">
+            <!-- Header Buttons -->
             <div class="button-group">
                 <button class="buttonHeader" onclick="pageProcessDNA()">Process DNA</button>
                 <button class="buttonHeader" onclick="pageFilterAA()">Filter AA</button>
@@ -21,7 +22,7 @@
                 <div class="dropdown">
                   <button class="dropbtn">Select Enzyme</button>
                       <div class="dropdown-content">
-                        <a href="/about">Add Enzyme</a>
+                        <a href="/addEnzyme">Add Enzyme</a>
                         <a href="/help">Help</a>
                       </div>
                   </div>
@@ -29,10 +30,10 @@
         </div>
 
 
-        <!-- Body Buttons -->
+        <!-- Body -->
         <div class="box">
             <h1>Website!</h1>
-            <p>Press the button</p>
+            <p>{{ pg1 }}<p>
             <div class="form-group">
                 <button type="button" onclick="clickButton()" class="button">Click Me</button>
             </div>

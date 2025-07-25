@@ -21,7 +21,13 @@ def run():
 
 @app.route('/')
 def home():
-    return render_template('home.html')
+    return render_template(
+        'home.html',
+        pg1='This website will allow you to process FASTQ files and extract protein '
+            'sequences from the data. Amino acids in the extracted sequences are counted '
+            'and by comparing the "experimental" and "background" datasets the '
+            'enrichment of each residue can be evaluated.'
+    )
 
 @app.route('/processDNA')
 def processDNA():
