@@ -19,6 +19,10 @@ function clickButton() {
     });
 }
 
+function pageHome() {
+    window.location.href = "/"
+}
+
 function pageProcessDNA() {
     window.location.href = "/processDNA";
 }

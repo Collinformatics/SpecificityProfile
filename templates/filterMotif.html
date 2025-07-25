@@ -8,12 +8,25 @@
         <title>Enzyme Profiling</title>
     </head>
     <body>
-        <!-- Header Buttons -->
+        <!-- Header -->
         <div class="container-header">
+            <!-- Header Buttons -->
             <div class="button-group">
+                <button class="buttonHeader" onclick="pageHome()">Home</button>
                 <button class="buttonHeader" onclick="pageProcessDNA()">Process DNA</button>
                 <button class="buttonHeader" onclick="pageFilterAA()">Filter AA</button>
                 <button class="buttonHeader" onclick="pageFilterMotif()">Filter Motif</button>
+            </div>
+
+            <!-- Header Dropdown -->
+            <div class="dropdown-wrapper">
+                <div class="dropdown">
+                  <button class="dropbtn">Select Enzyme</button>
+                      <div class="dropdown-content">
+                        <a href="/addEnzyme">Add Enzyme</a>
+                        <a href="/help">Help</a>
+                      </div>
+                  </div>
             </div>
         </div>
 
