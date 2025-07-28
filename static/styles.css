@@ -7,6 +7,11 @@
     --orange: #FA8128;
     --orangeBurnt: #BF5700;
 
+    --textColor: white;
+    --textSize: 16px;
+    --textSizeLabel: 20px;
+    --textSizeHeader: 30px;
+
     --headerHeight: 40px;
     --headerButtonWidth: 110px;
 
@@ -19,6 +24,7 @@
     --buttonFontSize: 16px;
     --buttonHighlight: #643603;
 
+    --padSize: 5px;
     --paddingBox: 20px;
 
     --dropdownWidth: 160px;
@@ -33,22 +39,29 @@ body {
 
 h1 {
     color: var(--orangeBurnt);
-
+    font-size: var(--textSizeHeader);
     margin: 10px;
-    padding: 5px;
+    padding: var(--padSize) var(--padSize) 0 var(--padSize);
 }
 
 p {
-    color: var(--white);
-    font-size: var(--);
+    color: var(--textColor);
+    font-size: var(--textSize);
     width: fit-content;
     align-self: flex-start;
     margin: 10px;
-    padding: 5px;
+    padding: var(--padSize);
 }
-.p2 {
-    color: var(--white);
-    font-size: {{ fontSize }}px;
+.pL { /* Labels */
+    color: var(--orange);
+    font-size: calc(var(--textSize) + 4px);
+    text-align: center;
+    width: fit-content;
+    margin: 0 auto;  /* ⬅ centers the element itself */
+}
+.pE { /* Equations */
+    color: var(--textColor);
+    font-size: var(--textSize);
     text-align: center;       /* center inline content */
     display: block;           /* ensure it's block-level */
     margin: 10px auto;        /* center the block horizontally */
@@ -59,7 +72,7 @@ p {
 .box {
     background-color: var(--grey);
     margin: 20px;
-    padding: 5px;
+    padding: var(--padSize);
 
     display: flex;
     flex-direction: column;

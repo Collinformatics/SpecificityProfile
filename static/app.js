@@ -28,7 +28,7 @@ function pageProcessDNA() {
 }
 
 function pageFilterAA() {
-    window.location.href = "/filterAA";
+    window.location.href = "/filterAminoAcids";
 }
 
 function pageFilterMotif() {
