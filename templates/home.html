@@ -33,11 +33,12 @@
 
         <!-- Body -->
         <div class="box">
-            <h1>Website!</h1>
-            <p>{{ pg1 }}<p>
-            <div class="form-group">
-                <button type="button" onclick="clickButton()" class="button">Click Me</button>
-            </div>
+            <h1>Your Name</h1>
+            <p>{{ pg1 | safe }}</p>
+            <p>{{ pg2 | safe }}</p>
+            <p>{{ pg3 | safe }}</p>
+            <p class="p2">{{ eqt1 | safe }}</p>
+            <p>{{ pg4 | safe }}</p>
         </div>
     </body>
 </html>
