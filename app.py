@@ -21,26 +21,7 @@ def run():
 
 @app.route('/')
 def home():
-    return render_template(
-        'home.html',
-        pg1='This website will allow you to process enzyme profiling data.<br><br>'
-            'There are several tools available for processing your datasets.',
-        pg2='Upload a FASTQ or FASTA file to translate the DNA sequences. The prevalence '
-            'of amino acids in your datasets will be evaluated. Both the counts matrix, '
-            'and protein sequences can then be downloaded and used for subsequent '
-            'analysis',
-        pg3='To apply a filter to the data, simply select a position in the sequence, '
-            'and which residues will be required, or excluded.',
-        pg4='Words<br>',
-        pg5='By comparing the probability of finding a given residue in the '
-            'experimental (Exp) and background (Bg) datasets, the Enrichment Score (ES) '
-            'of each residue can be evaluated.',
-        eqt1='ES =  log<sub>2</sub>(prob<sub>AA Exp</sub> / prob<sub>AA Bg</sub>)',
-        pg6='By evaluating the amino acid probabilities in the exp set, we can determine '
-            'entropy scores (∆S) at each positon in the sequence.',
-        eqt2='∆S = S<sub>Max</sub> - S<sub>Shannon</sub> = log<sub>2</sub>(20) - '
-             '∑(-prob<sub>AA</sub> * log<sub>2</sub>(prob<sub>AA</sub>))'
-    )
+    return render_template('home.html',)
 
 @app.route('/processDNA')
 def processDNA():
