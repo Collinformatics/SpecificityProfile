@@ -1,6 +1,6 @@
 # Purpose:
 
-This is a template for a website that runs Python on the backend
+This website can be used to process and evauate enzyme profiling data.
 
 # Install Modules:
 
