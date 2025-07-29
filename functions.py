@@ -8,8 +8,8 @@ class WebApp:
 
         return {'key': 'Returned data'}
 
-    def evalDNA(self):
-        print('Processing DNA')
+    def evalDNA(self, data):
+        print(f'evalDNA:\n{data}')
 
         return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
 

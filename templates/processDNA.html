@@ -34,10 +34,27 @@
         <!-- Body -->
         <div class="box">
             <h1>Process DNA</h1>
-            <p>{{ pg1 | safe }}<p>
-            <div class="form-group">
-                <button type="button" onclick="clickButton()" class="button">Click Me</button>
-            </div>
+            <p>
+                This program translates DNA sequences. Uploaded files must be formatted as
+                FASTQ or FASTA.<br><br>
+                The produced datasets can be downloaded and used for subsequent analysis.
+            </p>
+
+            <!-- Forms -->
+            <form action="/run" method="POST" enctype="multipart/form-data" class="input-form">
+                <div class="form-group">
+                    <label for="enzymeName">Enzyme Name:</label>
+                    <input type="text" id="enzymeName" name="enzymeName" required value="Name">
+                </div>
+                <div class="form-group">
+                    <label for="sequenceFile">Experimental Data:</label>
+                    <input type="file" id="fileExp"
+                           name="fileExp" accept=".fasta,.fa,.fastq,.fq" required>
+                </div>
+                <div class="form-button">
+                    <button type="submit" class="button">Click Me</button>
+                </div>
+            </form>
         </div>
     </body>
 </html>

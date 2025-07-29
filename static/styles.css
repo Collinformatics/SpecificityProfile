@@ -32,8 +32,8 @@
 
 body {
     background-color: var(--black);
-    margin: 0;
-    padding: 5;
+    margin: 0px;
+    padding: 0px;
     font-family: 'Segoe UI', sans-serif;
 }
 
@@ -73,39 +73,10 @@ p {
     background-color: var(--grey);
     margin: 20px;
     padding: var(--padSize);
-
     display: flex;
     flex-direction: column;
-    justify-content: center;  /* Center horizontally */
     align-items: center;      /* Center vertically */
-}
-
-.form-group {
-    color: var(--green);
-    border-radius: 10px;
-    border: 0px solid var(--white);
-    height: 55px;
-    max-width: 1000px;
-    line-height: 2;
-    margin: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-button {
-    background-color: var(--green);
-    color: var(--black);
-    font-size: var(--buttonFontSize);
-    cursor: pointer;
-    border: none;
-    border-radius: var(--borderRad);
-    width: var(--buttonWidth);
-    height: var(--buttonHeight);
-    margin: 0px;
-}
-button:hover {
-    background-color: var(--greenDark);
+    padding: var(--padSize);
 }
 
 .container-header {
@@ -142,8 +113,6 @@ button:hover {
     flex: 1;
 }
 
-
-
 /* Dropdown */
 .dropdown {
     margin-left: auto;
@@ -173,7 +142,6 @@ button:hover {
     align-items: center; /* Vertically centers contents */
     justify-content: center;
 }
-
 .dropdown-content {
     background-color: var(--grey);
     color: var(--white);
@@ -186,7 +154,6 @@ button:hover {
     flex-direction: column;
     border-radius: 0px;
 }
-
 .dropdown-content a {
     color: var(--white);
     padding: 10px 5px;
@@ -196,17 +163,53 @@ button:hover {
     border-radius: 0px;
     border: 1px solid var(--orange);
 }
-
 .dropdown-content a:hover {
     background-color: var(--black);
     color: var(--orange);
 }
-
 .dropdown:hover .dropdown-content {
     display: block;
 }
-
 .dropdown:hover .dropbtn {
     background-color: var(--grey);
     color: var(--orange);
 }
+
+
+button {
+    background-color: var(--green);
+    color: var(--black);
+    font-size: var(--buttonFontSize);
+    cursor: pointer;
+    border: none;
+    border-radius: var(--borderRad);
+    width: var(--buttonWidth);
+    height: var(--buttonHeight);
+    margin: 5px;
+    padding: var(--padSize);
+}
+button:hover {
+    background-color: var(--greenDark);
+}
+
+/* Forms */
+.form-group {
+    color: var(--orange);
+    border: 100px;
+    max-width: 1000px;
+    margin: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* Space between elements */
+}
+.form-buttonUpload {
+
+}
+.form-button {
+    display: flex;
+    justify-content: center; /* horizontally center */
+    width: 100%;
+    margin: calc(var(--padSize) * 4) 0px calc(var(--padSize) * 2) 0px;
+}
+

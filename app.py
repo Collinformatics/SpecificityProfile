@@ -18,33 +18,30 @@ def run():
 
     return jsonify(data)
 
+@app.route('/evalDNA', methods=['POST'])
+def evalDNA():
+    print('Function Call: processDNA')
+    data = request.get_json() # Get the JSON body
+    webapp.evalDNA(data)
+    return jsonify({'status': 'ok'})
+
 
 @app.route('/')
 def home():
-    return render_template('home.html',)
+    # return render_template('home.html')
+    return render_template('processDNA.html')
 
 @app.route('/processDNA')
 def processDNA():
-    return render_template(
-        'processDNA.html',
-        pg1='This program translates DNA sequences. The produced datasets can be '
-            'download and used for subsequent analysis.'
-    )
+    return render_template('processDNA.html')
 
 @app.route('/filterAminoAcids')
 def filterAA():
-    return render_template(
-        'filterAA.html',
-        pg1='This program allows you to visualise your profiling data.<br><br>'
-            'You can filter the data by locking one or more amino acids at a given '
-            'position in the sequence.'
-    )
+    return render_template('filterAA.html')
 
 @app.route('/filterMotif')
 def filterMotif():
-    return render_template('filterMotif.html',
-        pg1='Apply an automated, entropy based filter to your data.'
-    )
+    return render_template('filterMotif.html')
 
 
 if __name__ == '__main__':
