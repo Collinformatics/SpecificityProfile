@@ -26,6 +26,7 @@
 
     --padSize: 5px;
     --paddingBox: 20px;
+    --gap: 5px;
 
     --dropdownWidth: 160px;
 }
@@ -52,14 +53,18 @@ p {
     margin: 10px;
     padding: var(--padSize);
 }
-.pL { /* Labels */
+
+/* Labels */
+.pL {
     color: var(--orange);
     font-size: calc(var(--textSize) + 4px);
     text-align: center;
     width: fit-content;
     margin: 0 auto;  /* ⬅ centers the element itself */
 }
-.pE { /* Equations */
+
+/* Equations */
+.pE {
     color: var(--textColor);
     font-size: var(--textSize);
     text-align: center;       /* center inline content */
@@ -67,7 +72,6 @@ p {
     margin: 10px auto;        /* center the block horizontally */
     width: fit-content;       /* only take up needed space */
 }
-
 
 .box {
     background-color: var(--grey);
@@ -79,6 +83,7 @@ p {
     padding: var(--padSize);
 }
 
+/* Header */
 .container-header {
     background-color: var(--grey);
     width: 100%;
@@ -89,7 +94,6 @@ p {
     padding-right: 10px;
     padding-left: 10px;
 }
-
 .buttonHeader {
     background-color: var(--grey);
     color: var(--orangeBurnt);
@@ -129,7 +133,7 @@ p {
     background-color: var(--grey);
     color: var(--orangeBurnt);
     right: 0; /* Keeps it on-screen */
-    height: calc(var(--headerHeight) - 5px); /* Make sure this variable exists! */
+    height: calc(var(--headerHeight) - 5px);
     width: var(--dropdownWidth);
     font-size: var(--buttonFontSize);
     border-radius: 0px;
@@ -175,12 +179,13 @@ p {
     color: var(--orange);
 }
 
-
+/* Button */
 button {
     background-color: var(--green);
     color: var(--black);
     font-size: var(--buttonFontSize);
     cursor: pointer;
+    align-items: center;
     border: none;
     border-radius: var(--borderRad);
     width: var(--buttonWidth);
@@ -191,25 +196,51 @@ button {
 button:hover {
     background-color: var(--greenDark);
 }
+.button-wrapper {
+    display: flex;
+    justify-content: center;  /* Horizontally center button */
+    align-items: center;      /* Vertically center button (if parent allows) */
+    width: 100%;
+    margin-bottom: 10px;
+}
+
 
 /* Forms */
 .form-group {
-    color: var(--orange);
-    border: 100px;
-    max-width: 1000px;
-    margin: 10px;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px; /* Space between elements */
+    flex-direction: column;   /* Stack label and input */
+    align-items: flex-start;  /* Align to the left */
+    margin-left: 30px;        /* Indent */
+    margin-bottom: 10px;      /* Add space between sections */
+    gap: var(--gap);
 }
-.form-buttonUpload {
 
+.form-group label {
+    color: var(--orange);
+    align-items: center; /* Vertically center all children */
+    font-weight: bold;
 }
+
+.input-form {
+    width: 100%;
+}
+
 .form-button {
     display: flex;
     justify-content: center; /* horizontally center */
     width: 100%;
     margin: calc(var(--padSize) * 4) 0px calc(var(--padSize) * 2) 0px;
+}
+
+.form-wrapper {
+    width: 100%;
+    display: inline-flex;
+    align-items: center; /* Vertically center all children */
+    justify-content: flex-start; /* Align form to the left */
+    margin-left: calc(var(--padSize) * 2);
+    margin-right: 10px;
+    padding-bottom: 3px;
+    gap: var(--gap);
+    font-weight: normal;
 }
 

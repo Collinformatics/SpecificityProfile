@@ -39,6 +39,7 @@
                 FASTQ or FASTA.<br><br>
                 The produced datasets can be downloaded and used for subsequent analysis.
             </p>
+            <p></p>
 
             <!-- Forms -->
             <form id="dnaForm" enctype="multipart/form-data" class="input-form">
@@ -46,30 +47,81 @@
                 <!-- Enzyme name -->
                 <div class="form-group">
                     <label for="enzymeName">Enzyme Name:</label>
-                    <input type="text" id="enzymeName" name="enzymeName" required value="Name">
+                    <div class="form-wrapper">
+                        <input type="text" id="enzymeName"
+                               name="enzymeName" required value="Name">
+                    </div>
                 </div>
 
                 <!-- Experimental data -->
                 <div class="form-group">
                     <label for="sequenceFile">Experimental Data:</label>
-                    <input type="file" id="fileExp"
-                           name="fileExp" accept=".fasta,.fa,.fastq,.fq" required>
+                    <div class="form-wrapper">
+                        <input type="file" id="fileExp"
+                               name="fileExp" accept=".fasta,.fa,.fastq,.fq" required>
+                    </div>
                 </div>
 
                 <!-- Background data -->
                 <div class="form-group">
                     <label for="sequenceFile">Background Data:</label>
-                    <input type="file" id="fileBg"
-                           name="fileBg" accept=".fasta,.fa,.fastq,.fq" required>
+                    <div class="form-wrapper">
+                        <input type="file" id="fileBg"
+                               name="fileBg" accept=".fasta,.fa,.fastq,.fq" required>
+                    </div>
+                </div>
+
+                <!-- Flanking sequence -->
+                <div class="form-group">
+                    <label for="flank5">Flanking Sequences:</label>
+                    <div class="form-wrapper">
+                        <label for="flank5">5':</label>
+                        <input type="text" id="flank5" name="flank5" value="AAAGGCAGT" required>
+                    </div>
+                    <div class="form-wrapper">
+                        <label for="flank5">3':</label>
+                        <input type="text" id="flank3" name="flank3" value="GGTGGAAGT" required>
+                    </div>
+                </div>
+
+                <!-- Sequence Length -->
+                <div class="form-group">
+                    <label for="seqLength">Sequence Length:</label>
+                    <div class="form-wrapper">
+                        <input type="number" id="seqLength"
+                               name="seqLength" value="8" min="1" required>
+                    </div>
+                </div>
+
+                <!-- Fix AA and Position -->
+                <div class="form-group">
+                    <label for="fixAA">Fix Residue (Optional):</label>
+                    <div class="form-wrapper">
+                        <label for="fixAA">AA:</label>
+                        <input type="text" id="fixAA" name="fixAA"
+                               maxlength="1" style="width: 40px;">
+
+                        <label for="fixPos" style="margin-left: 15px;">Position:</label>
+                        <input type="number" id="fixPos" name="fixPos"
+                               min="1" style="width: 60px;">
+                    </div>
+                </div>
+
+                <!-- Minimum Phred Score -->
+                <div class="form-group">
+                    <label for="minPhred">Minimum Phred Score:</label>
+                    <div class="form-wrapper">
+                        <input type="number" id="minPhred" name="minPhred"
+                               value="20" min="0"  max="40" required>
+                    </div>
                 </div>
 
 
-
-                <!-- Execute -->
-                <div class="form-button">
-                    <button type="button" onclick="buttonProcessDNA()">Click Me</button>
-                </div>
             </form>
+            <!-- Execute -->
+            <div class="button-wrapper">
+                <button type="button" onclick="buttonProcessDNA()">Evaluate</button>
+            </div>
         </div>
     </body>
 </html>
