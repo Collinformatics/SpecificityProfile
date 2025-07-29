@@ -41,18 +41,33 @@
             </p>
 
             <!-- Forms -->
-            <form action="/run" method="POST" enctype="multipart/form-data" class="input-form">
+            <form id="dnaForm" enctype="multipart/form-data" class="input-form">
+
+                <!-- Enzyme name -->
                 <div class="form-group">
                     <label for="enzymeName">Enzyme Name:</label>
                     <input type="text" id="enzymeName" name="enzymeName" required value="Name">
                 </div>
+
+                <!-- Experimental data -->
                 <div class="form-group">
                     <label for="sequenceFile">Experimental Data:</label>
                     <input type="file" id="fileExp"
                            name="fileExp" accept=".fasta,.fa,.fastq,.fq" required>
                 </div>
+
+                <!-- Background data -->
+                <div class="form-group">
+                    <label for="sequenceFile">Background Data:</label>
+                    <input type="file" id="fileBg"
+                           name="fileBg" accept=".fasta,.fa,.fastq,.fq" required>
+                </div>
+
+
+
+                <!-- Execute -->
                 <div class="form-button">
-                    <button type="submit" class="button">Click Me</button>
+                    <button type="button" onclick="buttonProcessDNA()">Click Me</button>
                 </div>
             </form>
         </div>

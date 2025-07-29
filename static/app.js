@@ -20,23 +20,20 @@ function clickButton() {
 }
 
 function buttonProcessDNA() {
-    // Get the input value
-    const enzymeName = document.getElementById("enzymeName").value;
+    const form = document.getElementById("dnaForm");
+    const formData = new FormData(form);
 
-    // POST request to app.py
     fetch('/evalDNA', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json' // Send JSON (Optional)
-        },
-        body: JSON.stringify({ enzymeName: enzymeName }) // Send data to app.py
+        body: formData
     })
-    .then(response => response.text())
+    .then(response => response.json())
     .then(data => {
-        console.log('Server Response:\n', data);
+        console.log("Response from server:", data);
+        // You can now update the page dynamically with JS
     })
     .catch(error => {
-        console.error('ERROR: ', error);
+        console.error("Error:", error);
     });
 }
 

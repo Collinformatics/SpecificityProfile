@@ -9,7 +9,14 @@ class WebApp:
         return {'key': 'Returned data'}
 
     def evalDNA(self, data):
-        print(f'evalDNA:\n{data}')
+        enzymeName = data['enzymeName']
+        fileExp = data['fileExp']  # This is a FileStorage object
+
+        # Read the file contents (as bytes)
+        contents = fileExp.read().decode('utf-8')  # Decode to string if text-based
+
+        print(f'enzymeName: {enzymeName}')
+        print(f'File contents:\n{contents[:200]}')
 
         return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
 

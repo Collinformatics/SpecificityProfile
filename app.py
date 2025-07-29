@@ -21,8 +21,15 @@ def run():
 @app.route('/evalDNA', methods=['POST'])
 def evalDNA():
     print('Function Call: processDNA')
-    data = request.get_json() # Get the JSON body
+    enzymeName = request.form.get('enzymeName')
+    fileExp = request.files.get('fileExp')
+
+    data = {
+        'enzymeName': enzymeName,
+        'fileExp': fileExp
+    }
     webapp.evalDNA(data)
+
     return jsonify({'status': 'ok'})
 
 
