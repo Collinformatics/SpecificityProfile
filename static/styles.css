@@ -244,3 +244,69 @@ button:hover {
     font-weight: normal;
 }
 
+
+#fixedAAContainer .form-wrapper {
+    margin-bottom: 5px;
+    gap: 5px;
+}
+.aa-selector {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--green);
+    color: var(--black);
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    margin: 5px;
+    position: relative;
+    z-index: 1;
+}
+
+.aa-dropdown {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-top: 5px;
+    padding: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    width: 200px;
+    z-index: 10;
+}
+
+.aa-option {
+    width: 40px;
+    text-align: center;
+    margin: 3px;
+    padding: 6px;
+    cursor: pointer;
+    background-color: var(--lightGray, #f2f2f2);
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.aa-option:hover {
+    background-color: var(--orange);
+    color: white;
+}
+
+.hidden {
+    display: none;
+}
+
+.form-wrapper-check {
+    align-items: flex-start;
+    display: flex;
+    gap: 5px;
+    margin-left: 5px;
+    margin-bottom: 10px;
+}
+
+.form-wrapper-check label {
+    color: var(--white);
+    cursor: pointer;
+    user-select: none;
+}

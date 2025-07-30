@@ -4,7 +4,6 @@
         <link rel="stylesheet" href="static/styles.css">
         <script src="static/app.js"></script>
 
-
         <title>Enzyme Profiling</title>
     </head>
     <body>
@@ -31,7 +30,7 @@
         </div>
 
 
-        <!-- Body -->
+        <!-- Application -->
         <div class="box">
             <h1>Process DNA</h1>
             <p>
@@ -76,35 +75,29 @@
                     <label for="flank5">Flanking Sequences:</label>
                     <div class="form-wrapper">
                         <label for="flank5">5':</label>
-                        <input type="text" id="flank5" name="flank5" value="AAAGGCAGT" required>
+                        <input type="text" id="flank5"
+                               name="flank5" value="AAAGGCAGT" required>
                     </div>
                     <div class="form-wrapper">
                         <label for="flank5">3':</label>
-                        <input type="text" id="flank3" name="flank3" value="GGTGGAAGT" required>
+                        <input type="text" id="flank3"
+                               name="flank3" value="GGTGGAAGT" required>
                     </div>
                 </div>
 
                 <!-- Sequence Length -->
                 <div class="form-group">
-                    <label for="seqLength">Sequence Length:</label>
-                    <div class="form-wrapper">
-                        <input type="number" id="seqLength"
-                               name="seqLength" value="8" min="1" required>
-                    </div>
+                  <label for="seqLength">Sequence Length:</label>
+                  <div class="form-wrapper">
+                    <input type="number" id="seqLength" name="seqLength"
+                           value="8" min="1" onchange="updateFixedAA()">
+                  </div>
                 </div>
 
                 <!-- Fix AA and Position -->
                 <div class="form-group">
-                    <label for="fixAA">Fix Residue (Optional):</label>
-                    <div class="form-wrapper">
-                        <label for="fixAA">AA:</label>
-                        <input type="text" id="fixAA" name="fixAA"
-                               maxlength="1" style="width: 40px;">
-
-                        <label for="fixPos" style="margin-left: 15px;">Position:</label>
-                        <input type="number" id="fixPos" name="fixPos"
-                               min="1" style="width: 60px;">
-                    </div>
+                  <label>Fix Residues (Optional):</label>
+                  <div id="fixedAAContainer"></div>
                 </div>
 
                 <!-- Minimum Phred Score -->
@@ -115,9 +108,8 @@
                                value="20" min="0"  max="40" required>
                     </div>
                 </div>
-
-
             </form>
+
             <!-- Execute -->
             <div class="button-wrapper">
                 <button type="button" onclick="buttonProcessDNA()">Evaluate</button>

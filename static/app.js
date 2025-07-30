@@ -1,3 +1,39 @@
+function updateFixedAA() {
+    const seqLength = parseInt(document.getElementById('seqLength').value);
+    const container = document.getElementById('fixedAAContainer');
+
+    const aminoAcids = ["A", "R", "N", "D", "C", "Q", "E", "G", "H", "I",
+                        "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"];
+
+
+    container.innerHTML = '';
+    container.style.display = 'flex';
+    container.style.flexWrap = 'wrap'; // Wrap to next line if needed
+    container.style.gap = '20px'; // spacing between each checkbox
+    for (let i = 1; i <= seqLength; i++) {
+        const label = document.createElement('label');
+        label.style.display = 'flex';
+        label.style.alignItems = 'center';
+        label.style.gap = '5px';
+        label.style.color = '#FA8128'; // orange label
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.name = `fixR${i}`;
+        checkbox.value = `R${i}`;
+
+        const text = document.createTextNode(`R${i}`);
+
+        label.appendChild(checkbox);
+        label.appendChild(text);
+        container.appendChild(label);
+    }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    updateFixedAA();
+});
+
+
 // Define button function
 function clickButton() {
     const message = 'your data';  // Pass data to app.py
