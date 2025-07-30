@@ -9,13 +9,20 @@ function updateFixedAA() {
     container.innerHTML = '';
     container.style.display = 'flex';
     container.style.flexWrap = 'wrap'; // Wrap to next line if needed
-    container.style.gap = '20px'; // spacing between each checkbox
+    container.style.gap = '12px'; // spacing between each checkbox
+    container.paddingLeft = '5px';
+
     for (let i = 1; i <= seqLength; i++) {
+        const wrapper = document.createElement('div'); // ✅ You were missing this!
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.flex = '0 0 60px';
+
         const label = document.createElement('label');
         label.style.display = 'flex';
         label.style.alignItems = 'center';
-        label.style.gap = '5px';
-        label.style.color = '#FA8128'; // orange label
+        label.style.color = '#FA8128';
+        label.style.flex = '0 0 30px';
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -23,10 +30,41 @@ function updateFixedAA() {
         checkbox.value = `R${i}`;
 
         const text = document.createTextNode(`R${i}`);
-
         label.appendChild(checkbox);
         label.appendChild(text);
-        container.appendChild(label);
+        wrapper.appendChild(label); // ✅ Append label to wrapper
+
+        const aaGroup = document.createElement('div');
+        aaGroup.style.display = 'none';
+        aaGroup.style.flexWrap = 'wrap';
+        aaGroup.style.gap = '0px';
+        aaGroup.style.marginLeft = '10px';
+        aaGroup.style.marginTop = '0px';
+
+        aminoAcids.forEach(aa => {
+            const aaLabel = document.createElement('label');
+            aaLabel.style.display = 'flex';
+            aaLabel.style.alignItems = 'center';
+            aaLabel.style.color = 'white';
+            aaLabel.style.fontSize = '12px';
+
+            const aaCheckbox = document.createElement('input');
+            aaCheckbox.type = 'checkbox';
+            aaCheckbox.name = `aa_R${i}`;
+            aaCheckbox.value = aa;
+
+            const aaText = document.createTextNode(aa);
+            aaLabel.appendChild(aaCheckbox);
+            aaLabel.appendChild(aaText);
+            aaGroup.appendChild(aaLabel);
+        });
+
+        checkbox.addEventListener('change', function () {
+            aaGroup.style.display = checkbox.checked ? 'flex' : 'none';
+        });
+
+        wrapper.appendChild(aaGroup);      // ✅ Append AA group to wrapper
+        container.appendChild(wrapper);    // ✅ Append full wrapper to container
     }
 }
 document.addEventListener('DOMContentLoaded', function() {
