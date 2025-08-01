@@ -3,8 +3,9 @@ import os.path
 
 class WebApp:
     def __init__(self):
-        # Params: Enzyme
+        # Params: Dataset
         self.enzymeName = ''
+        self.seqLength = False
 
         # Params: Files
         self.fileBg = []
@@ -14,10 +15,15 @@ class WebApp:
         self.pathFigs = os.path.join(self.pathData, 'figures')
         self.path = ''
 
-        # Params:
+        # Params: Process DNA
         self.seq5Prime = False
         self.seq3Prime = False
-        self.subLength = False
+        self.minPhred = False
+
+        # Params: Filter Dataset
+        self.filterPos = False
+        self.fixAA = {}
+        self.exclAA = {}
 
         # Params: Figures
         self.datasetTag = None
@@ -30,11 +36,11 @@ class WebApp:
         self.titleWeblogoReleased = ''
         self.titleWords = ''
         self.titleWordsCombined = ''
-        self.figEMSquares = figEMSquares
-        if figEMSquares:
-            self.figSizeEM = (5, 8)  # (width, height)
-        else:
-            self.figSizeEM = (9.5, 8)
+        # self.figEMSquares = figEMSquares
+        # if figEMSquares:
+        #     self.figSizeEM = (5, 8)  # (width, height)
+        # else:
+        self.figSizeEM = (9.5, 8)
         self.figSize = (9.5, 8)
         self.figSizeMini = (self.figSize[0], 6)
         self.residueLabelType = 2  # 0 = full AA name, 1 = 3-letter code, 2 = 1 letter
@@ -43,19 +49,19 @@ class WebApp:
         self.labelSizeTicks = 13
         self.lineThickness = 1.5
         self.tickLength = 4
-        self.residues = defaultResidues
-        self.letters = [residue[2] for residue in self.residues]
-        self.colorsAA = NGS.residueColors()
+        self.colorsAA = self.residueColors()
+        self.residues = self.colorsAA.keys()
 
-        # Params:
-        self. = False
-        self. = False
-        self. = False
+        # # Params:
+        # self. = False
+        # self. = False
+        # self. = False
+        #
+        # # Params:
+        # self. = False
+        # self. = False
+        # self. = False
 
-        # Params:
-        self. = False
-        self. = False
-        self. = False
 
         # Verify directory paths
         if self.pathData is not None:
@@ -68,29 +74,77 @@ class WebApp:
             if not os.path.exists(self.pathFigs):
                 os.makedirs(self.pathFigs, exist_ok=True)
 
+    def evalDNA(self, data):
+        print(f'Received Data:')
+        for key, value in data.items():
+            print(f'     {key}: {value}')
+        print()
+
+        self.enzymeName = data['enzymeName']
+        self.fileExp = data['fileExp']
+        self.fileBg = data['fileBg']
+        self.seq5Prime = data['seq5Prime']
+        self.seq3Prime = data['seq5Prime']
+        self.seqLength = data['seqLength']
+        self.filterPos = data['filterPos']
+        self.minPhred = data['minPhred']
+
+        for key, value in data.items():
+            if 'fix' in key:
+                self.fixAA[key] = value
+        self.fixAA = dict(sorted(self.fixAA.items()))
+
+        print(f'Fixing AA:')
+        for key, value in self.fixAA.items():
+            print(f'     {key}: {value}')
+        print()
+
+
+        return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
+
+
+
+    def loadDNA(self, path):
+        print(f'================================= Loading Data '
+              f'=================================')
+        print(f'File Path:\n{path}\n\n')
+
+
+
+    @staticmethod
+    def residueColors():
+        color = ['darkgreen', 'firebrick', 'deepskyblue', 'pink', 'navy', 'black', 'gold']
+        # Aliphatic, Acidic, Basic, Hydroxyl, Amide, Aromatic, Sulfur
+
+        return {
+            'A': color[0],
+            'R': color[2],
+            'N': color[4],
+            'D': color[1],
+            'C': color[6],
+            'E': color[1],
+            'Q': color[4],
+            'G': color[0],
+            'H': color[2],
+            'I': color[0],
+            'L': color[0],
+            'K': color[2],
+            'M': color[6],
+            'F': color[5],
+            'P': color[0],
+            'S': color[3],
+            'T': color[3],
+            'W': color[5],
+            'Y': color[5],
+            'V': color[0]
+        }
+
 
     def pressButton(self, message):
         print(f'Received data: {message}')
 
         return {'key': 'Returned data'}
 
-
-
-    def evalDNA(self, data):
-        print(f'Received Data:')
-        for key, value in data.items():
-            print(f'     {key}: {value}')
-            if 'file' in key:
-                if value:
-                    self.loadDNA(value)
-        print('\n')
-
-        return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
-
-
-
-    def loadDNA(self):
-        print()
 
 
     def filterAA(self):
