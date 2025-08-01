@@ -24,17 +24,7 @@ def run():
 
 @app.route('/evalDNA', methods=['POST'])
 def evalDNA():
-    print('Function Call: processDNA')
     data = request.get_json()
-    for key, value in data.items():
-        print(f'     {key}: {value}')
-        if 'file' in key:
-            if value:
-                print(f'          File: True')
-            else:
-                print(f'          File: False')
-    print('\n')
-
     webapp.evalDNA(data)
 
     return jsonify({'status': 'ok'})
