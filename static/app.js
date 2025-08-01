@@ -1,10 +1,8 @@
 function updateFixedAA() {
     const seqLength = parseInt(document.getElementById('seqLength').value);
     const container = document.getElementById('fixedAAContainer');
-
     const aminoAcids = ["A", "R", "N", "D", "C", "Q", "E", "G", "H", "I",
                         "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"];
-
 
     container.innerHTML = '';
     container.style.display = 'flex';
@@ -13,7 +11,7 @@ function updateFixedAA() {
     container.paddingLeft = '5px';
 
     for (let i = 1; i <= seqLength; i++) {
-        const wrapper = document.createElement('div'); // ✅ You were missing this!
+        const wrapper = document.createElement('div');
         wrapper.style.display = 'flex';
         wrapper.style.flexDirection = 'column';
         wrapper.style.flex = '0 0 60px';
@@ -26,13 +24,13 @@ function updateFixedAA() {
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.name = `fixR${i}`;
+        checkbox.name = `posFilter`;
         checkbox.value = `R${i}`;
 
         const text = document.createTextNode(`R${i}`);
         label.appendChild(checkbox);
         label.appendChild(text);
-        wrapper.appendChild(label); // ✅ Append label to wrapper
+        wrapper.appendChild(label); // Append label to wrapper
 
         const aaGroup = document.createElement('div');
         aaGroup.style.display = 'none';
@@ -50,7 +48,7 @@ function updateFixedAA() {
 
             const aaCheckbox = document.createElement('input');
             aaCheckbox.type = 'checkbox';
-            aaCheckbox.name = `aa_R${i}`;
+            aaCheckbox.name = `fixR${i}`;
             aaCheckbox.value = aa;
 
             const aaText = document.createTextNode(aa);
@@ -71,35 +69,32 @@ document.addEventListener('DOMContentLoaded', function() {
     updateFixedAA();
 });
 
-
 // Define button function
-function clickButton() {
-    const message = 'your data';  // Pass data to app.py
-
-    // POST request to app.py
-    fetch('/run', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json' // Send JSON (Optional)
-        },
-        body: JSON.stringify({ message: message }) // Send data to app.py
-    })
-    .then(response => response.text())
-    .then(data => {
-        console.log('Server Response:\n', data);
-    })
-    .catch(error => {
-        console.error('ERROR: ', error);
-    });
-}
-
 function buttonProcessDNA() {
     const form = document.getElementById("dnaForm");
     const formData = new FormData(form);
+    const json = {};
 
+    // Process the input form
+    for (const [key, value] of formData.entries()) {
+        if (json[key]) {
+            // When you have more that one value or a key, put the values in a list
+            if (!Array.isArray(json[key])) {
+                json[key] = [json[key]]; // Convert to array
+            }
+            json[key].push(value);  // Push another value into the list
+        } else {
+            json[key] = value;
+        }
+    }
+
+    console.log('Input Form:', json);
     fetch('/evalDNA', {
         method: 'POST',
-        body: formData
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(json)
     })
     .then(response => response.json())
     .then(data => {
@@ -128,3 +123,23 @@ function pageFilterMotif() {
     window.location.href = "/filterMotif";
 }
 
+
+function clickButton() {
+    const message = 'your data';  // Pass data to app.py
+
+    // POST request to app.py
+    fetch('/run', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json' // Send JSON (Optional)
+        },
+        body: JSON.stringify({ message: message }) // Send data to app.py
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log('Server Response:\n', data);
+    })
+    .catch(error => {
+        console.error('ERROR: ', error);
+    });
+}

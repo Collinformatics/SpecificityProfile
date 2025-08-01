@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, render_template, request
 from functions import WebApp
+import json
 
 
 app = Flask(__name__)
@@ -18,16 +19,22 @@ def run():
 
     return jsonify(data)
 
+    # enzymeName = request.form.get('enzymeName')
+    # fileExp = request.files.get('fileExp')
+
 @app.route('/evalDNA', methods=['POST'])
 def evalDNA():
     print('Function Call: processDNA')
-    enzymeName = request.form.get('enzymeName')
-    fileExp = request.files.get('fileExp')
+    data = request.get_json()
+    for key, value in data.items():
+        print(f'     {key}: {value}')
+        if 'file' in key:
+            if value:
+                print(f'          File: True')
+            else:
+                print(f'          File: False')
+    print('\n')
 
-    data = {
-        'enzymeName': enzymeName,
-        'fileExp': fileExp
-    }
     webapp.evalDNA(data)
 
     return jsonify({'status': 'ok'})
