@@ -25,8 +25,7 @@ class WebApp:
         self.pathData = 'data'
         self.pathSeqs = os.path.join(self.pathData, 'sequences')
         self.pathFigs = os.path.join(self.pathData, 'figures')
-        # self.pathLog = os.path.join(self.pathData, 'log.txt')
-        self.pathLog = 'log.txt'
+        self.pathLog = os.path.join(self.pathData, 'log.txt')
 
         # Params: Process DNA
         self.seq5Prime = False
@@ -131,12 +130,11 @@ class WebApp:
         return {'Motif': 'TVALK'}
 
 
+
     def getDatasetTag(self):
         tagFix = 'Fix '
         tagExcl = 'Excl '
-        print(self.fixAA)
         fixNPos = len(self.fixAA)
-        print(f'N: {fixNPos}\n')
 
         if self.exclAA:
             print('Exclude AA:')
@@ -168,15 +166,11 @@ class WebApp:
                 print(f'Tag: {tagFix}')
             self.datasetTag = tagFix
 
-        self.log(f'Dataset Tag: {self.datasetTag}\n')
+        self.log(f'Dataset Tag: {self.datasetTag}\n\n')
 
-
-        sys.exit()
 
 
     def getFilter(self, form):
-        print('================================= Define Filter '
-              '=================================')
         self.filterPos = form.get('filterPos', [])
         self.fixAA = {}
         self.exclAA = {}
@@ -204,6 +198,8 @@ class WebApp:
             for key, value in self.exclAA.items():
                 print(f'     {key}: {value}')
             print()
+            print('\nStopping job at: getFilter()\n')
+            sys.exit()
 
         self.getDatasetTag()
 
@@ -227,7 +223,7 @@ class WebApp:
         self.fileExp = form['fileExp']
         self.fileBg = form['fileBg']
         self.seq5Prime = form['seq5Prime']
-        self.seq3Prime = form['seq5Prime']
+        self.seq3Prime = form['seq3Prime']
         self.seqLength = form['seqLength']
         self.minPhred = form['minPhred']
 
@@ -243,55 +239,68 @@ class WebApp:
         self.getFilter(form)
 
         # Params: Tmp
-        self.fileExp = 'data/variantsExp.fastq.gz'
+        self.fileExp = 'data/variantsExp.fastq.gz' # Update when using files
         self.fileBg = 'data/variantsBg.fasta'
 
         # Load the data
         if self.fileExp:
-            self.loadDNA(path=self.fileExp)
+            self.loadDNA(path=self.fileExp, datasetType='Experimental')
         if self.fileBg:
-            self.loadDNA(path=self.fileBg)
+            self.loadDNA(path=self.fileBg, datasetType='Background')
 
         return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
 
 
 
-    def loadDNA(self, path):
-        self.log(f'================================= Loading Data '
-                 f'=================================')
-        self.log(f'File: {path}\n')
+    def loadDNA(self, path, datasetType):
+        # Open the file
+        openFn = gzip.open if path.endswith('.gz') else open # Define open function
+        with openFn(path, 'rt') as file: # 'rt' = read text mode
+            if '.fastq' in path or '.fq' in path:
+                data = SeqIO.parse(file, 'fastq')
+                warnings.simplefilter('ignore', BiopythonWarning)
+            elif '.fasta' in path or '.fa' in path:
+                data = SeqIO.parse(file, 'fasta')
+                warnings.simplefilter('ignore', BiopythonWarning)
+            else:
+                self.log(f'ERROR: Unrecognized file\n     {path}\n\n')
 
+            # Translate the DNA
+            self.translate(data, datasetType, True)
+
+
+
+    def translate(self, data, datasetType, forwardRead):
         substrates = {}
+        useQS = False
         totalSeqsDNA = 0
         printedSeqs = 0
         printN = 10
 
-        # Define open function
-        openFn = gzip.open if path.endswith('.gz') else open
-        with openFn(path, 'rt') as file:  # 'rt' = read text mode
-            if '.fastq' in path or '.fq' in path:
-                print(f'Processing: fastq')
+        if forwardRead:
+            self.log('Translating DNA: Forward Read')
+        else:
+            self.log('Translating DNA: Reverse Read')
+        self.log(f'     Dataset: {datasetType}')
 
-                data = SeqIO.parse(file, 'fastq')
-                warnings.simplefilter('ignore', BiopythonWarning)
+        # Inspect the file
+        for datapoint in data:
+            print(f'{datapoint}\n')
+            if 'phred_quality' in datapoint.letter_annotations:
+                useQS = True
+                self.log('     Inspecting Phred quality scores')
+            break
+        self.log('')
 
 
-                for index, datapoint in enumerate(data):
-                    if index == 10:
-                        break
-                    self.log(f'{datapoint}\n')
+        if forwardRead:
+            for index, datapoint in enumerate(data):
+                dna = str(datapoint.seq)
+                if index >= printN:
+                    break
+                self.log(f'{dna}')
+        else:
+            self.log('Translation: Reverse Read\n')
 
-            elif '.fasta' in path or '.fa' in path:
-                print(f'Processing: fasta')
-                data = SeqIO.parse(file, 'fasta')
-                warnings.simplefilter('ignore', BiopythonWarning)
 
-                for index, datapoint in enumerate(data):
-                    if index >= printN:
-                        break
-                    self.log(f'{datapoint}\n')
-            else:
-                self.log(f'ERROR: Unrecognized file\n     {path}\n\n')
         sys.exit()
-
-
