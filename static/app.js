@@ -1,3 +1,4 @@
+// Fix AA
 function updateFixedAA() {
     const seqLength = parseInt(document.getElementById('seqLength').value);
     const container = document.getElementById('fixedAAContainer');
@@ -24,7 +25,7 @@ function updateFixedAA() {
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.name = `posFilter`;
+        checkbox.name = `filterPos`;
         checkbox.value = `R${i}`;
 
         const text = document.createTextNode(`R${i}`);
@@ -65,9 +66,44 @@ function updateFixedAA() {
         container.appendChild(wrapper);    // ✅ Append full wrapper to container
     }
 }
+
+// Create listener to inspect html input after the form has been loaded and parsed
 document.addEventListener('DOMContentLoaded', function() {
     updateFixedAA();
+
+    // Inspect file upload: Experimental data
+    document.getElementById('fileExp').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const allowed = ['.fasta', '.fa', '.fasta.gz', '.fa.gz', '.fastq', '.fq', '.fastq.gz', '.fq.gz'];
+    const filename = file.name.toLowerCase();
+
+    const valid = allowed.some(ext => filename.endsWith(ext));
+    if (!valid) {
+        alert(`ERROR:\nYou can only upload files with these extensions:
+        ${allowed.join(' ')}`);
+        event.target.value = ''; // Clear file input
+    }
+    });
+
+    // Inspect file upload: Background data
+    document.getElementById('fileBg').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const allowed = ['.fasta', '.fa', '.fasta.gz', '.fa.gz', '.fastq', '.fq', '.fastq.gz', '.fq.gz'];
+    const filename = file.name.toLowerCase();
+
+    const valid = allowed.some(ext => filename.endsWith(ext));
+    if (!valid) {
+        alert(`ERROR:\nYou can only upload files with these extensions:
+        ${allowed.join(' ')}`);
+        event.target.value = ''; // Clear file input
+    }
+    });
 });
+
 
 // Define button function
 function buttonProcessDNA() {
@@ -107,17 +143,21 @@ function buttonProcessDNA() {
 }
 
 
+//
 function pageHome() {
     window.location.href = "/"
 }
+
 
 function pageProcessDNA() {
     window.location.href = "/processDNA";
 }
 
+
 function pageFilterAA() {
     window.location.href = "/filterAminoAcids";
 }
+
 
 function pageFilterMotif() {
     window.location.href = "/filterMotif";

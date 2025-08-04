@@ -1,4 +1,6 @@
+import gzip
 import os.path
+
 
 
 class WebApp:
@@ -9,7 +11,9 @@ class WebApp:
 
         # Params: Files
         self.fileBg = []
-        self.fileExp = []
+        self.seqExp = None
+        self.fileBg = []
+        self.seqBg = None
         self.pathData = 'data'
         self.pathSeqs = os.path.join(self.pathData, 'sequences')
         self.pathFigs = os.path.join(self.pathData, 'figures')
@@ -74,43 +78,6 @@ class WebApp:
             if not os.path.exists(self.pathFigs):
                 os.makedirs(self.pathFigs, exist_ok=True)
 
-    def evalDNA(self, data):
-        print(f'Received Data:')
-        for key, value in data.items():
-            print(f'     {key}: {value}')
-        print()
-
-        self.enzymeName = data['enzymeName']
-        self.fileExp = data['fileExp']
-        self.fileBg = data['fileBg']
-        self.seq5Prime = data['seq5Prime']
-        self.seq3Prime = data['seq5Prime']
-        self.seqLength = data['seqLength']
-        self.filterPos = data['filterPos']
-        self.minPhred = data['minPhred']
-
-        for key, value in data.items():
-            if 'fix' in key:
-                self.fixAA[key] = value
-        self.fixAA = dict(sorted(self.fixAA.items()))
-
-        print(f'Fixing AA:')
-        for key, value in self.fixAA.items():
-            print(f'     {key}: {value}')
-        print()
-
-
-        return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
-
-
-
-    def loadDNA(self, path):
-        print(f'================================= Loading Data '
-              f'=================================')
-        print(f'File Path:\n{path}\n\n')
-
-
-
     @staticmethod
     def residueColors():
         color = ['darkgreen', 'firebrick', 'deepskyblue', 'pink', 'navy', 'black', 'gold']
@@ -139,24 +106,88 @@ class WebApp:
             'V': color[0]
         }
 
-
     def pressButton(self, message):
         print(f'Received data: {message}')
 
         return {'key': 'Returned data'}
-
-
 
     def filterAA(self):
         print('Processing Substrates')
 
         return {'AA': 'VEHTVALKQNR'}
 
-
-
     def filterMotif(self):
         print('Filtering Substrates')
 
         return {'Motif': 'TVALK'}
 
+
+
+    def evalDNA(self, data):
+        print(f'Received Data:')
+        for key, value in data.items():
+            print(f'     {key}: {value}')
+        print('\n')
+
+        # Process job parameters
+        self.enzymeName = data['enzymeName']
+        self.fileExp = data['fileExp']
+        self.fileBg = data['fileBg']
+        self.seq5Prime = data['seq5Prime']
+        self.seq3Prime = data['seq5Prime']
+        self.seqLength = data['seqLength']
+        self.filterPos = data.get('filterPos', [])
+        self.minPhred = data['minPhred']
+
+        for key, value in data.items():
+            if 'fix' in key:
+                self.fixAA[key] = value
+        self.fixAA = dict(sorted(self.fixAA.items()))
+
+        if 'fix' in data.keys():
+            print(f'Fixing AA:')
+            for key, value in self.fixAA.items():
+                print(f'     {key}: {value}')
+            print()
+
+
+        # Params: Tmp
+        # self.fileExp = 'data/variantsExp.fastq.gz'
+        # self.fileBg = 'data/variantsBg.fasta.zip'
+
+        # Load the data
+        if self.fileExp:
+            self.loadDNA(path=self.fileExp)
+        if self.fileBg:
+            self.loadDNA(path=self.fileBg, loadExp=False)
+
+        return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
+
+
+
+    def loadDNA(self, path, loadExp=True):
+        print(f'================================= Loading Data '
+              f'=================================')
+        print(f'File Path:\n      {path}\n')
+
+        # Define open function
+        openFn = gzip.open if path.endswith('.gz') else open
+        with openFn(path, 'rt') as file:  # 'rt' = read text mode
+            for index, line in enumerate(file):
+                print(f'      {line.strip()}')
+                if index == 10:
+                    break
+        print('\n')
+
+        # if '.fastq' in path:
+        #     print(f'Loading: fastq')
+        #     with open(path) as dna:
+        #         for line in dna:
+        #             print(f'      {line}')
+        #     print('\n')
+        # elif '.fasta' in path:
+        #     print(f'Loading: fasta')
+        #     with open(path) as dna:
+        #         print(dna)
+        #     print('\n')
 
