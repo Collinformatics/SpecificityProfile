@@ -62,8 +62,8 @@ function updateFixedAA() {
             aaGroup.style.display = checkbox.checked ? 'flex' : 'none';
         });
 
-        wrapper.appendChild(aaGroup);      // ✅ Append AA group to wrapper
-        container.appendChild(wrapper);    // ✅ Append full wrapper to container
+        wrapper.appendChild(aaGroup);      // Append AA group to wrapper
+        container.appendChild(wrapper);    // Append full wrapper to container
     }
 }
 
@@ -105,16 +105,50 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
+//// Form: Process DNA
+//function buttonProcessDNA_UpdateWhenDoneBuilding() {
+//    const form = document.getElementById("dnaForm");
+//    const formData = new FormData(form); // This keeps files intact!
+//
+//    fetch('/evalDNA', {
+//        method: 'POST',
+//        body: formData // send as multipart/form-data
+//    })
+//    .then(response => response.json())
+//    .then(data => {
+//        console.log("Response from server:", data);
+//    })
+//    .catch(error => {
+//        console.error("Error:", error);
+//    });
+//
+//    // app.py
+//    @app.route('/evalDNA', methods=['POST'])
+//    def evalDNA():
+//        enzymeName = request.form.get('enzymeName')
+//        fileExp = request.files.get('fileExp')
+//        fileBg = request.files.get('fileBg')
+//        # other form fields the same way
+//
+//}
+
+
 // Define button function
 function buttonProcessDNA() {
     const form = document.getElementById("dnaForm");
     const formData = new FormData(form);
-    const json = {};
+    const json = {}; // Dont send files as a JSON
+    const selectedFixPositions = [];
 
     // Process the input form
     for (const [key, value] of formData.entries()) {
+    if (key === 'filterPos') {
+        selectedFixPositions.push(value);  // e.g., ['R2']
+        }
+
+
         if (json[key]) {
-            // When you have more that one value or a key, put the values in a list
+        // When you have more that one value or a key, put the values in a list
             if (!Array.isArray(json[key])) {
                 json[key] = [json[key]]; // Convert to array
             }
@@ -122,7 +156,15 @@ function buttonProcessDNA() {
         } else {
             json[key] = value;
         }
-    }
+        }
+
+        // Clean out fixR* keys not selected
+        Object.keys(json).forEach(key => {
+            if (key.startsWith('fix') && !selectedFixPositions.includes(key.replace('fix', ''))) {
+                delete json[key];
+        }
+    });
+
 
     console.log('Input Form:', json);
     fetch('/evalDNA', {

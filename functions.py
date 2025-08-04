@@ -1,5 +1,11 @@
+import sys
+
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio import BiopythonWarning
 import gzip
 import os.path
+import warnings
 
 
 
@@ -8,6 +14,8 @@ class WebApp:
         # Params: Dataset
         self.enzymeName = ''
         self.seqLength = False
+        self.subsExp = {}
+        self.subsBg = {}
 
         # Params: Files
         self.fileBg = []
@@ -17,7 +25,8 @@ class WebApp:
         self.pathData = 'data'
         self.pathSeqs = os.path.join(self.pathData, 'sequences')
         self.pathFigs = os.path.join(self.pathData, 'figures')
-        self.path = ''
+        # self.pathLog = os.path.join(self.pathData, 'log.txt')
+        self.pathLog = 'log.txt'
 
         # Params: Process DNA
         self.seq5Prime = False
@@ -122,72 +131,167 @@ class WebApp:
         return {'Motif': 'TVALK'}
 
 
+    def getDatasetTag(self):
+        tagFix = 'Fix '
+        tagExcl = 'Excl '
+        print(self.fixAA)
+        fixNPos = len(self.fixAA)
+        print(f'N: {fixNPos}\n')
 
-    def evalDNA(self, data):
-        print(f'Received Data:')
-        for key, value in data.items():
-            print(f'     {key}: {value}')
-        print('\n')
+        if self.exclAA:
+            print('Exclude AA:')
+            for index, (pos, AA) in enumerate(self.exclAA.items()):
+                if len(AA) > 1:
+                    tag = f'[{','.join(AA)}]@{pos.replace('fix', '')}'
+                else:
+                    tag = f'{AA}@{pos.replace('fix', '')}'
 
-        # Process job parameters
-        self.enzymeName = data['enzymeName']
-        self.fileExp = data['fileExp']
-        self.fileBg = data['fileBg']
-        self.seq5Prime = data['seq5Prime']
-        self.seq3Prime = data['seq5Prime']
-        self.seqLength = data['seqLength']
-        self.filterPos = data.get('filterPos', [])
-        self.minPhred = data['minPhred']
+                if fixNPos > 1 and index != fixNPos - 1:
+                    tagExcl += f'{tag}_'
+                else:
+                    tagExcl += tag
+                print(f'Tag: {tagExcl}')
+            self.datasetTag = tagExcl
 
-        for key, value in data.items():
-            if 'fix' in key:
-                self.fixAA[key] = value
-        self.fixAA = dict(sorted(self.fixAA.items()))
+        if self.fixAA:
+            print('Fix AA')
+            for index, (pos, AA) in enumerate(self.fixAA.items()):
+                if len(AA) > 1:
+                    tag = f'[{','.join(AA)}]@{pos.replace('fix', '')}'
+                else:
+                    tag = f'{AA}@{pos.replace('fix', '')}'
 
-        if 'fix' in data.keys():
+                if fixNPos > 1 and index != fixNPos - 1:
+                    tagFix += f'{tag}_'
+                else:
+                    tagFix += tag
+                print(f'Tag: {tagFix}')
+            self.datasetTag = tagFix
+
+        self.log(f'Dataset Tag: {self.datasetTag}\n')
+
+
+        sys.exit()
+
+
+    def getFilter(self, form):
+        print('================================= Define Filter '
+              '=================================')
+        self.filterPos = form.get('filterPos', [])
+        self.fixAA = {}
+        self.exclAA = {}
+
+        # Fix AA
+        if any(key.startswith('fix') for key in form.keys()):
+            for key, value in form.items():
+                if 'fix' in key:
+                    self.fixAA[key] = value
+
+            self.fixAA = dict(sorted(self.fixAA.items()))
             print(f'Fixing AA:')
             for key, value in self.fixAA.items():
                 print(f'     {key}: {value}')
             print()
 
+        # Exclude AA
+        if any(key.startswith('excl') for key in form.keys()):
+            for key, value in form.items():
+                if 'fix' in key:
+                    self.exclAA[key] = value
+
+            self.exclAA = dict(sorted(self.exclAA.items()))
+            print(f'Excluding AA:')
+            for key, value in self.exclAA.items():
+                print(f'     {key}: {value}')
+            print()
+
+        self.getDatasetTag()
+
+
+
+    def log(self, txt=None):
+        if txt is None:
+            with open(self.pathLog, 'w'):
+                pass
+        else:
+            with open(self.pathLog, 'a') as log:
+                log.write(f'{txt}\n')
+
+
+
+    def evalDNA(self, form):
+        self.log()  # Clear the log
+
+        # Process job parameters
+        self.enzymeName = form['enzymeName']
+        self.fileExp = form['fileExp']
+        self.fileBg = form['fileBg']
+        self.seq5Prime = form['seq5Prime']
+        self.seq3Prime = form['seq5Prime']
+        self.seqLength = form['seqLength']
+        self.minPhred = form['minPhred']
+
+        # Log job params
+        self.log(f'================================= Process DNA '
+                 f'==================================')
+        self.log(f'5\' Sequence: {self.seq5Prime}\n'
+                 f'3\' Sequence: {self.seq3Prime}\n'
+                 f'Sequence Length: {self.seqLength}\n'
+                 f'Min Phred Score: {self.minPhred}')
+
+        # Evaluate input form
+        self.getFilter(form)
 
         # Params: Tmp
-        # self.fileExp = 'data/variantsExp.fastq.gz'
-        # self.fileBg = 'data/variantsBg.fasta.zip'
+        self.fileExp = 'data/variantsExp.fastq.gz'
+        self.fileBg = 'data/variantsBg.fasta'
 
         # Load the data
         if self.fileExp:
             self.loadDNA(path=self.fileExp)
         if self.fileBg:
-            self.loadDNA(path=self.fileBg, loadExp=False)
+            self.loadDNA(path=self.fileBg)
 
         return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
 
 
 
-    def loadDNA(self, path, loadExp=True):
-        print(f'================================= Loading Data '
-              f'=================================')
-        print(f'File Path:\n      {path}\n')
+    def loadDNA(self, path):
+        self.log(f'================================= Loading Data '
+                 f'=================================')
+        self.log(f'File: {path}\n')
+
+        substrates = {}
+        totalSeqsDNA = 0
+        printedSeqs = 0
+        printN = 10
 
         # Define open function
         openFn = gzip.open if path.endswith('.gz') else open
         with openFn(path, 'rt') as file:  # 'rt' = read text mode
-            for index, line in enumerate(file):
-                print(f'      {line.strip()}')
-                if index == 10:
-                    break
-        print('\n')
+            if '.fastq' in path or '.fq' in path:
+                print(f'Processing: fastq')
 
-        # if '.fastq' in path:
-        #     print(f'Loading: fastq')
-        #     with open(path) as dna:
-        #         for line in dna:
-        #             print(f'      {line}')
-        #     print('\n')
-        # elif '.fasta' in path:
-        #     print(f'Loading: fasta')
-        #     with open(path) as dna:
-        #         print(dna)
-        #     print('\n')
+                data = SeqIO.parse(file, 'fastq')
+                warnings.simplefilter('ignore', BiopythonWarning)
+
+
+                for index, datapoint in enumerate(data):
+                    if index == 10:
+                        break
+                    self.log(f'{datapoint}\n')
+
+            elif '.fasta' in path or '.fa' in path:
+                print(f'Processing: fasta')
+                data = SeqIO.parse(file, 'fasta')
+                warnings.simplefilter('ignore', BiopythonWarning)
+
+                for index, datapoint in enumerate(data):
+                    if index >= printN:
+                        break
+                    self.log(f'{datapoint}\n')
+            else:
+                self.log(f'ERROR: Unrecognized file\n     {path}\n\n')
+        sys.exit()
+
 

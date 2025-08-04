@@ -24,7 +24,7 @@ def run():
 
 @app.route('/evalDNA', methods=['POST'])
 def evalDNA():
-    data = request.get_json()
+    data = request.get_json() # Get the input form
     webapp.evalDNA(data)
 
     return jsonify({'status': 'ok'})
