@@ -225,7 +225,7 @@ class WebApp:
         self.seq5Prime = form['seq5Prime']
         self.seq3Prime = form['seq3Prime']
         self.seqLength = int(form['seqLength'])
-        self.minPhred = int(form['minPhred'])
+        self.minPhred = int(form['minPhred']) if form['minPhred'] != '' else 0
 
         # Log job params
         self.log(f'================================= Process DNA '
@@ -274,16 +274,23 @@ class WebApp:
 
     def translate(self, data, datasetType, forwardRead):
         substrates = {}
-        useQS = False
         totalSubsExtracted = 0
         totalSeqsDNA = 0
         printN = 10
 
+        # Inspect the file
+        useQS = False
+        for datapoint in data:
+            print(f'{datapoint}\n')
+            if 'phred_quality' in datapoint.letter_annotations:
+                useQS = True
+            break
+
         def extractionEfficiency():
             perExtracted = (totalSubsExtracted / totalSeqsDNA) * 100
-            self.log(f'Extracted Sequences: {totalSubsExtracted:,}\n'
-                     f'Evaluated DNA Sequences: {totalSeqsDNA:,}\n'
-                     f'     Extraction Efficiency: {perExtracted} %')
+            self.log(f'Evaluated DNA Sequences: {totalSeqsDNA:,}\n'
+                     f'   Extracted Substrates: {totalSubsExtracted:,}\n'
+                     f'  Extraction Efficiency: {perExtracted} %')
 
         if forwardRead:
             self.log('Translating dna: Forward Read')
@@ -291,12 +298,7 @@ class WebApp:
             self.log('Translating dna: Reverse Read')
         self.log(f'     Dataset: {datasetType}\n')
 
-        # Inspect the file
-        for datapoint in data:
-            print(f'{datapoint}\n')
-            if 'phred_quality' in datapoint.letter_annotations:
-                useQS = True
-            break
+
 
         # Translate DNA
         if useQS:
