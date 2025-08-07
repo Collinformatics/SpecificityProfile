@@ -92,7 +92,8 @@
                   <label for="seqLength">Sequence Length:</label>
                   <div class="form-wrapper">
                     <input type="number" id="seqLength" name="seqLength"
-                           value="8" min="1" onchange="updateFixedAA()">
+                           value="8" min="1" onchange="updateFixedAA()" style="width: 50px;"
+                           required>
                   </div>
                 </div>
 
@@ -107,14 +108,14 @@
                     <label for="minPhred">Minimum Phred Score:</label>
                     <div class="form-wrapper">
                         <input type="number" id="minPhred" name="minPhred"
-                               value="20" min="0"  max="40" required>
+                               value="20" min="0"  max="40" style="width: 50px;">
                     </div>
                 </div>
             </form>
 
             <!-- Execute -->
             <div class="button-wrapper">
-                <button type="button" onclick="buttonProcessDNA()">Evaluate</button>
+                <button class="btn" onclick="buttonProcessDNA()">Evaluate</button>
             </div>
         </div>
     </body>

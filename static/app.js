@@ -71,7 +71,7 @@ function updateFixedAA() {
 document.addEventListener('DOMContentLoaded', function() {
     updateFixedAA();
 
-    // Inspect file upload: Experimental data
+    // Inspect File Upload: Experimental data
     document.getElementById('fileExp').addEventListener('change', function(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     });
 
-    // Inspect file upload: Background data
+    // Inspect File Upload: Background data
     document.getElementById('fileBg').addEventListener('change', function(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -102,7 +102,18 @@ document.addEventListener('DOMContentLoaded', function() {
         event.target.value = ''; // Clear file input
     }
     });
-});
+
+//    // Inspect File Upload:
+//    document.getElementById('').addEventListener('input', function() {
+//        const value = this.value;
+//        console.log('Input: ', value)
+//
+//        if (!isInteger && value !== '') {
+//            alert('Please enter a valid input.');
+//            this.value = ''; // Optionally clear the input
+//        }
+//    });
+//});
 
 
 //// Form: Process DNA
@@ -130,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
 //        fileBg = request.files.get('fileBg')
 //        # other form fields the same way
 //
-//}
+});
 
 
 // Define button function
@@ -167,13 +178,11 @@ function buttonProcessDNA() {
 
 
     console.log('Input Form:', json);
-    fetch('/evalDNA', {
+        fetch('/evalDNA', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(json)
+        body: formData  // Send the actual FormData object, not a JSON
     })
+
     .then(response => response.json())
     .then(data => {
         console.log("Response from server:", data);
