@@ -16,6 +16,7 @@ class WebApp:
         self.seqLength = False
         self.subsExp = {}
         self.subsBg = {}
+        self.printN = 10
 
         # Params: Files
         self.fileBg = []
@@ -166,7 +167,7 @@ class WebApp:
                 print(f'Tag: {tagFix}')
             self.datasetTag = tagFix
 
-        self.log(f'Dataset Tag: {self.datasetTag}\n\n')
+        self.log(f'Dataset Tag: {self.datasetTag}\n')
 
 
 
@@ -215,6 +216,32 @@ class WebApp:
 
 
 
+    def logSubs(self, subs, tag):
+        self.log(f'Substrates: {tag}')
+        for index, (sub, count) in enumerate(subs.items()):
+            if index >= self.printN:
+                self.log('\n')
+                break
+            self.log(f'     {sub}: {count}')
+
+
+
+    def logError(self, function, msg):
+        self.log(f'\n========================================='
+                 f'========================================\n'
+                 f'========================================='
+                 f'========================================\n\n'
+                 f'ERROR: {function}\n'
+                 f'{msg}\n\n'
+                 f'========================================='
+                 f'========================================\n'
+                 f'========================================='
+                 f'========================================\n'
+                 )
+        sys.exit(1)
+
+
+
     def evalDNA(self, form):
         self.log()  # Clear the log
 
@@ -227,8 +254,9 @@ class WebApp:
         self.seqLength = int(form['seqLength'])
         self.minPhred = int(form['minPhred']) if form['minPhred'] != '' else 0
 
+
         # Log job params
-        self.log(f'================================= Process DNA '
+        self.log(f'================================== Process DNA '
                  f'==================================')
         self.log(f'5\' Sequence: {self.seq5Prime}\n'
                  f'3\' Sequence: {self.seq3Prime}\n'
@@ -239,22 +267,33 @@ class WebApp:
         self.getFilter(form)
 
         # Params: Tmp
-        self.fileExp = 'data/variantsExp.fastq.gz' # Update when using files
+        self.fileExp = 'data/variantsExp.fastq' # Update when using files
         self.fileBg = 'data/variantsBg.fasta'
         # if type(file) == 'fastq':
         #     useQS = True
 
         # Load the data
         if self.fileExp:
-            self.loadDNA(path=self.fileExp, datasetType='Experimental')
+            self.loadDNA(path=self.fileExp, datasetType='Exp', forwardRead=True)
         if self.fileBg:
-            self.loadDNA(path=self.fileBg, datasetType='Background')
+            self.loadDNA(path=self.fileBg, datasetType='Bg', forwardRead=True)
+
+        # Sort data
+        self.log('\nExtracted Substrates:')
+        if self.subsExp:
+            self.subsExp = dict(sorted(self.subsExp.items(),
+                                       key=lambda item: item[1], reverse=True))
+            self.logSubs(subs=self.subsExp, tag='Experimental')
+        if self.subsBg:
+            self.subsBg = dict(sorted(self.subsBg.items(),
+                                      key=lambda item: item[1], reverse=True))
+            self.logSubs(subs=self.subsBg, tag='Background')
 
         return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
 
 
 
-    def loadDNA(self, path, datasetType):
+    def loadDNA(self, path, datasetType, forwardRead):
         # Open the file
         openFn = gzip.open if path.endswith('.gz') else open # Define open function
         with openFn(path, 'rt') as file: # 'rt' = read text mode
@@ -268,7 +307,7 @@ class WebApp:
                 self.log(f'ERROR: Unrecognized file\n     {path}\n\n')
 
             # Translate the dna
-            self.translate(data, datasetType, True)
+            self.translate(data, datasetType, forwardRead)
 
 
 
@@ -276,7 +315,12 @@ class WebApp:
         substrates = {}
         totalSubsExtracted = 0
         totalSeqsDNA = 0
-        printN = 10
+        self.printN = 10
+        if forwardRead:
+            self.log('\nTranslating: Forward Read')
+        else:
+            self.log('\nTranslating: Reverse Read')
+        self.log(f'    Dataset: {datasetType}')
 
         # Inspect the file
         useQS = False
@@ -285,25 +329,30 @@ class WebApp:
             if 'phred_quality' in datapoint.letter_annotations:
                 useQS = True
             break
+        self.log(f' Inspect QS: {useQS}\n')
 
-        def extractionEfficiency():
+        # Inspect the datasetType parameter
+        if datasetType != 'Exp' and datasetType != 'Bg':
+            self.logError(function='translate()',
+                          msg=f'Unknown dataset type: {datasetType}')
+
+
+        def extractionEfficiency(fullSet=False):
             perExtracted = (totalSubsExtracted / totalSeqsDNA) * 100
-            self.log(f'Evaluated DNA Sequences: {totalSeqsDNA:,}\n'
-                     f'   Extracted Substrates: {totalSubsExtracted:,}\n'
-                     f'  Extraction Efficiency: {perExtracted} %')
-
-        if forwardRead:
-            self.log('Translating dna: Forward Read')
-        else:
-            self.log('Translating dna: Reverse Read')
-        self.log(f'     Dataset: {datasetType}\n')
-
+            if fullSet:
+                self.log('- All Sequences')
+            else:
+                self.log(f'\nExtraction Efficiency:\n'
+                         f'- First {self.printN} Sequences')
+            self.log(f'     Evaluated DNA Sequences: {totalSeqsDNA:,}\n'
+                     f'        Extracted Substrates: {totalSubsExtracted:,}\n'
+                     f'       Extraction Efficiency: {round(perExtracted, 3)} %\n')
 
 
-        # Translate DNA
+        # Translate DNA - Sample Set
         if useQS:
             for index, datapoint in enumerate(data):
-                if totalSubsExtracted >= printN:
+                if totalSubsExtracted >= self.printN: # Exit loop
                     break
 
                 # Process datapoint
@@ -341,10 +390,117 @@ class WebApp:
                             else:
                                 self.log('')
         else:
-            print('Code Me!')
-            sys.exit()
+            for index, datapoint in enumerate(data):
+                if totalSubsExtracted >= self.printN:
+                    break
 
-        # Evaluate dataquality
-        extractionEfficiency()
+                # Process datapoint
+                totalSeqsDNA += 1
+                dna = str(datapoint.seq)
+                self.log(f'DNA Seq: {dna}')
 
-        sys.exit()
+                # Inspect full dna seq
+                if self.seq5Prime in dna and self.seq3Prime in dna:
+
+                    # Find: Substrate indices
+                    start = dna.find(self.seq5Prime) + len(self.seq5Prime)
+                    end = dna.find(self.seq3Prime)
+
+                    # Extract substrate dna seq
+                    substrateDNA = dna[start:end].strip()
+                    self.log(f'    Sub: {substrateDNA}\n'
+                             f'Len: {len(substrateDNA)}, {self.seqLength * 3}')
+
+                    if len(substrateDNA) == self.seqLength * 3:
+                        # Express substrate
+                        substrate = str(Seq.translate(substrateDNA))
+                        self.log(f'    Sub: {substrate}')
+
+                        # Inspect substrate seq: PRINT ONLY
+                        if 'X' not in substrate and '*' not in substrate:
+                            self.log(f'Keep Substrate\n')
+                            if substrate in substrates.keys():
+                                substrates[substrate] += 1
+                            else:
+                                substrates[substrate] = 1
+                            totalSubsExtracted += 1
+                        else:
+                            self.log('')
+        extractionEfficiency() # Evaluate data quality
+
+
+
+        # Translate DNA - Full Set
+        if useQS:
+            for index, datapoint in enumerate(data):
+                # Process datapoint
+                totalSeqsDNA += 1
+                dna = str(datapoint.seq)
+
+                # Inspect full dna seq
+                if self.seq5Prime in dna and self.seq3Prime in dna:
+                    qs = datapoint.letter_annotations['phred_quality']
+
+                    # Find: Substrate indices
+                    start = dna.find(self.seq5Prime) + len(self.seq5Prime)
+                    end = dna.find(self.seq3Prime)
+
+                    # Extract substrate dna seq
+                    substrateDNA = dna[start:end].strip()
+                    if len(substrateDNA) == self.seqLength * 3:
+                        # Express substrate
+                        substrate = str(Seq.translate(substrateDNA))
+
+                        # Inspect substrate seq: PRINT ONLY
+                        if 'X' not in substrate and '*' not in substrate:
+                            qs = qs[start:end]
+                            if all(score >= self.minPhred for score in qs):
+                                if substrate in substrates.keys():
+                                    substrates[substrate] += 1
+                                else:
+                                    substrates[substrate] = 1
+                                totalSubsExtracted += 1
+        else:
+            for index, datapoint in enumerate(data):
+                # Process datapoint
+                totalSeqsDNA += 1
+                dna = str(datapoint.seq)
+
+                # Inspect full dna seq
+                if self.seq5Prime in dna and self.seq3Prime in dna:
+
+                    # Find: Substrate indices
+                    start = dna.find(self.seq5Prime) + len(self.seq5Prime)
+                    end = dna.find(self.seq3Prime)
+
+                    # Extract substrate dna seq
+                    substrateDNA = dna[start:end].strip()
+                    if len(substrateDNA) == self.seqLength * 3:
+                        # Express substrate
+                        substrate = str(Seq.translate(substrateDNA))
+
+                        # Inspect substrate seq: PRINT ONLY
+                        if 'X' not in substrate and '*' not in substrate:
+                            if substrate in substrates.keys():
+                                substrates[substrate] += 1
+                            else:
+                                substrates[substrate] = 1
+                            totalSubsExtracted += 1
+        extractionEfficiency(fullSet=True)  # Evaluate data quality
+
+        # Record substrates
+        if datasetType == 'Exp':
+            for substrate, count in substrates.items():
+                if substrate in self.subsExp.keys():
+                    self.subsExp[substrate] += count
+                else:
+                    self.subsExp[substrate] = count
+        elif datasetType == 'Bg':
+            for substrate, count in substrates.items():
+                if substrate in self.subsExp.keys():
+                    self.subsBg[substrate] += count
+                else:
+                    self.subsBg[substrate] = count
+        else:
+            self.logError(function='translate()',
+                          msg=f'Unknown dataset type: {datasetType}')

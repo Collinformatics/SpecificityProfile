@@ -236,6 +236,7 @@ button:hover {
 .input-form {
     width: 100%;
     min-width: 200px;
+
 }
 
 .form-button {
@@ -247,7 +248,7 @@ button:hover {
 
 .form-wrapper {
     width: 100%;
-    display: inline-flex;
+    display: flex;
     align-items: center; /* Vertically center all children */
     justify-content: flex-start; /* Align form to the left */
     margin-left: var(--labelMargin);
@@ -255,6 +256,19 @@ button:hover {
     padding-bottom: 3px;
     gap: var(--gap);
     font-weight: normal;
+}
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"] {
+    padding: 2px 4px; /* Adjust vertical and horizontal padding */
+    line-height: 1.0; /* Helps with vertical alignment */
+    height: auto;
+    font-size: 14px;
+    box-sizing: border-box;
 }
 
 #fixedAAContainer .form-wrapper {
@@ -363,8 +377,7 @@ button:hover {
     );*/
     background: linear-gradient(
         45deg,
-        #56F1FF, #56F1FF, #FF5BFF, #FF5BFF,
-        #56F1FF
+        #56F1FF, #FF5BFF, #56F1FF
     );
     position: absolute;
     top: -2px;
