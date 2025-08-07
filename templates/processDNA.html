@@ -56,7 +56,14 @@
                 <div class="form-group">
                     <label for="sequenceFile">Experimental Data:</label>
                     <div class="form-wrapper">
+                        <label class="label-sub" for="fileExp">Forward Read:</label>
                         <input type="file" id="fileExp" name="fileExp"
+                               accept=".fasta,.fa,.fasta.gz,.fa.gz,.fastq,.fq,.gz"
+                               required>
+                    </div>
+                    <div class="form-wrapper">
+                        <label class="label-sub" for="fileExpRev">Reverse Read:</label>
+                        <input type="file" id="fileExpRev" name="fileExpRev"
                                accept=".fasta,.fa,.fasta.gz,.fa.gz,.fastq,.fq,.gz"
                                required>
                     </div>
@@ -66,9 +73,16 @@
                 <div class="form-group">
                     <label for="sequenceFile">Background Data:</label>
                     <div class="form-wrapper">
+                        <label class="label-sub" for="fileBg">Forward Read:</label>
                         <input type="file" id="fileBg" name="fileBg"
-                               accept=".fasta,.fa,.fasta.gz,.fa.gz,.fastq,.fq,.fastq.gz,.fq, .gz"
-                               required>
+                               accept=".fasta,.fa,.fasta.gz,.fa.gz,.fastq,.fq,.gz"
+                               required multiple>
+                    </div>
+                    <div class="form-wrapper">
+                        <label class="label-sub" for="fileBgRev">Reverse Read:</label>
+                        <input type="file" id="fileBgRev" name="fileBgRev"
+                               accept=".fasta,.fa,.fasta.gz,.fa.gz,.fastq,.fq,.gz"
+                               required multiple>
                     </div>
                 </div>
 
@@ -76,14 +90,14 @@
                 <div class="form-group">
                     <label for="flank5">Flanking Sequences:</label>
                     <div class="form-wrapper">
-                        <label for="seq5Prime">5':</label>
+                        <label class="label-sub" for="seq5Prime">5':</label>
                         <input type="text" id="seq5Prime"
-                               name="seq5Prime" value="AAAGGCAGT" required>
+                               name="seq5Prime" value="AAAGGCAGT">
                     </div>
                     <div class="form-wrapper">
-                        <label for="seq3Prime">3':</label>
+                        <label class="label-sub" for="seq3Prime">3':</label>
                         <input type="text" id="seq3Prime"
-                               name="seq3Prime" value="GGTGGAAGT" required>
+                               name="seq3Prime" value="GGTGGAAGT">
                     </div>
                 </div>
 

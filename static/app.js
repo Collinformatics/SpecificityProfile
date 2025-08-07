@@ -20,7 +20,7 @@ function updateFixedAA() {
         const label = document.createElement('label');
         label.style.display = 'flex';
         label.style.alignItems = 'center';
-        label.style.color = '#FA8128';
+        label.style.color = '#FFF'; // '#FA8128'
         label.style.flex = '0 0 30px';
 
         const checkbox = document.createElement('input');

@@ -27,6 +27,7 @@
 
     --padSize: 5px;
     --paddingBox: 20px;
+    --labelMargin: 10px;
     --gap: 5px;
 
     --dropdownWidth: 160px;
@@ -84,6 +85,7 @@ p {
     padding: var(--padSize);
 }
 
+
 /* Header */
 .container-header {
     background-color: var(--grey);
@@ -117,6 +119,7 @@ p {
     justify-content: flex-start;
     flex: 1;
 }
+
 
 /* Dropdown */
 .dropdown {
@@ -180,6 +183,7 @@ p {
     color: var(--orange);
 }
 
+
 /* Button */
 button {
     background-color: var(--green);
@@ -212,7 +216,7 @@ button:hover {
     flex-direction: column;   /* Stack label and input */
     align-items: flex-start;  /* Align to the left */
     margin-left: 30px;        /* Indent */
-    margin-bottom: 10px;      /* Add space between sections */
+    margin-bottom: 15px;      /* Add space between sections */
     gap: var(--gap);
     min-width: 100px;
 }
@@ -222,6 +226,12 @@ button:hover {
     align-items: center; /* Vertically center all children */
     font-weight: bold;
 }
+.form-group .label-sub {
+    color: var(--white);
+    font-weight: normal;
+    align-items: center;
+}
+
 
 .input-form {
     width: 100%;
@@ -240,13 +250,12 @@ button:hover {
     display: inline-flex;
     align-items: center; /* Vertically center all children */
     justify-content: flex-start; /* Align form to the left */
-    margin-left: calc(var(--padSize) * 2);
+    margin-left: var(--labelMargin);
     margin-right: 10px;
     padding-bottom: 3px;
     gap: var(--gap);
     font-weight: normal;
 }
-
 
 #fixedAAContainer .form-wrapper {
     margin-bottom: 5px;
