@@ -1,10 +1,10 @@
-import sys
-
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio import BiopythonWarning
 import gzip
 import os.path
+import pandas as pd
+import sys
 import warnings
 
 
@@ -14,9 +14,12 @@ class WebApp:
         # Params: Dataset
         self.enzymeName = ''
         self.seqLength = False
-        self.subsExp = {}
-        self.subsBg = {}
         self.printN = 10
+        self.xAxisLabel = False
+        self.subsExp = {}
+        self.countsExp = 'Initialize me'
+        self.subsBg = {}
+        self.countsBg = 'Initialize me'
 
         # Params: Files
         self.fileBg = []
@@ -63,7 +66,7 @@ class WebApp:
         self.lineThickness = 1.5
         self.tickLength = 4
         self.colorsAA = self.residueColors()
-        self.residues = self.colorsAA.keys()
+        self.AA = list(self.colorsAA.keys())
 
         # # Params:
         # self. = False
@@ -120,12 +123,30 @@ class WebApp:
 
         return {'key': 'Returned data'}
 
-    def filterAA(self):
-        print('Processing Substrates')
+    def filterAA(self, form):
+        self.log()  # Clear the log
 
+        # Process job parameters
+        self.enzymeName = form['enzymeName']
+        self.seqLength = int(form['seqLength'])
+
+        # Setup data structures
+        self.initDataStructures()
+        
+        print('Processing Substrates')
+        
         return {'AA': 'VEHTVALKQNR'}
 
-    def filterMotif(self):
+    def filterMotif(self, form):
+        self.log()  # Clear the log
+
+        # Process job parameters
+        self.enzymeName = form['enzymeName']
+        self.seqLength = int(form['seqLength'])
+
+        # Setup data structures
+        self.initDataStructures()
+        
         print('Filtering Substrates')
 
         return {'Motif': 'TVALK'}
@@ -242,6 +263,13 @@ class WebApp:
 
 
 
+    def initDataStructures(self):
+        self.xAxisLabel = [f'R{index}' for index in range(1, self.seqLength + 1)]
+        self.countsExp = pd.DataFrame(0, index=self.AA, columns=self.xAxisLabel)
+        self.countsBg = pd.DataFrame(0, index=self.AA, columns=self.xAxisLabel)
+
+
+
     def evalDNA(self, form):
         self.log()  # Clear the log
 
@@ -254,6 +282,8 @@ class WebApp:
         self.seqLength = int(form['seqLength'])
         self.minPhred = int(form['minPhred']) if form['minPhred'] != '' else 0
 
+        # Setup data structures
+        self.initDataStructures()
 
         # Log job params
         self.log(f'================================== Process DNA '
@@ -274,9 +304,11 @@ class WebApp:
 
         # Load the data
         if self.fileExp:
-            self.loadDNA(path=self.fileExp, datasetType='Exp', forwardRead=True)
+            dType = 'Experimental'
+            self.loadDNA(path=self.fileExp, datasetType=dType, forwardRead=True)
         if self.fileBg:
-            self.loadDNA(path=self.fileBg, datasetType='Bg', forwardRead=True)
+            dType = 'Background'
+            self.loadDNA(path=self.fileBg, datasetType=dType, forwardRead=True)
 
         # Sort data
         self.log('\nExtracted Substrates:')
@@ -288,6 +320,16 @@ class WebApp:
             self.subsBg = dict(sorted(self.subsBg.items(),
                                       key=lambda item: item[1], reverse=True))
             self.logSubs(subs=self.subsBg, tag='Background')
+
+        # Count AAs
+        if self.fileExp:
+            dType = 'Experimental'
+            self.countAA(substrates=self.subsExp, countMatrix=self.countsExp,
+                         datasetType=dType, fromDNA=True)
+        if self.fileBg:
+            dType = 'Background'
+            self.countAA(substrates=self.subsBg, countMatrix=self.countsBg,
+                         datasetType=dType, fromDNA=True)
 
         return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
 
@@ -332,7 +374,7 @@ class WebApp:
         self.log(f' Inspect QS: {useQS}\n')
 
         # Inspect the datasetType parameter
-        if datasetType != 'Exp' and datasetType != 'Bg':
+        if datasetType != 'Experimental' and datasetType != 'Background':
             self.logError(function='translate()',
                           msg=f'Unknown dataset type: {datasetType}')
 
@@ -342,7 +384,7 @@ class WebApp:
             if fullSet:
                 self.log('- All Sequences')
             else:
-                self.log(f'\nExtraction Efficiency:\n'
+                self.log(f'\nExtraction Efficiency: {datasetType}\n'
                          f'- First {self.printN} Sequences')
             self.log(f'     Evaluated DNA Sequences: {totalSeqsDNA:,}\n'
                      f'        Extracted Substrates: {totalSubsExtracted:,}\n'
@@ -370,7 +412,7 @@ class WebApp:
 
                     # Extract substrate dna seq
                     substrateDNA = dna[start:end].strip()
-                    self.log(f'    Sub: {substrateDNA}')
+                    self.log(f'Sub Seq: {substrateDNA}')
                     if len(substrateDNA) == self.seqLength * 3:
                         # Express substrate
                         substrate = str(Seq.translate(substrateDNA))
@@ -408,8 +450,7 @@ class WebApp:
 
                     # Extract substrate dna seq
                     substrateDNA = dna[start:end].strip()
-                    self.log(f'    Sub: {substrateDNA}\n'
-                             f'Len: {len(substrateDNA)}, {self.seqLength * 3}')
+                    self.log(f'Sub Seq: {substrateDNA}')
 
                     if len(substrateDNA) == self.seqLength * 3:
                         # Express substrate
@@ -427,7 +468,6 @@ class WebApp:
                         else:
                             self.log('')
         extractionEfficiency() # Evaluate data quality
-
 
 
         # Translate DNA - Full Set
@@ -489,13 +529,13 @@ class WebApp:
         extractionEfficiency(fullSet=True)  # Evaluate data quality
 
         # Record substrates
-        if datasetType == 'Exp':
+        if datasetType == 'Experimental':
             for substrate, count in substrates.items():
                 if substrate in self.subsExp.keys():
                     self.subsExp[substrate] += count
                 else:
                     self.subsExp[substrate] = count
-        elif datasetType == 'Bg':
+        elif datasetType == 'Background':
             for substrate, count in substrates.items():
                 if substrate in self.subsExp.keys():
                     self.subsBg[substrate] += count
@@ -504,3 +544,27 @@ class WebApp:
         else:
             self.logError(function='translate()',
                           msg=f'Unknown dataset type: {datasetType}')
+
+
+
+    def countAA(self, substrates, countMatrix, datasetType, fromDNA=False):
+        self.log('=================================== Count AA '
+                 '====================================')
+        self.log(f'Dataset: {datasetType}\n'
+                 f'Unique Substrates: {len(substrates.keys())}')
+
+        if fromDNA:
+            for substrate, count in substrates.items():
+                countSub = True
+                for AA in substrate:
+                    if AA not in self.AA:
+                        countSub = False
+                        self.log(f'Warning: An AA ({AA}) in substrate ({substrate}) '
+                                 f'is not an accepted AAs\n'
+                                 f'     Accepted: {self.AA}\n')
+                        break
+                if countSub:
+                    for index, AA in enumerate(substrate):
+                        countMatrix.loc[AA, f'R{index + 1}'] += count
+        self.log(f'Total {countMatrix}\n\n')
+        sys.exit()
