@@ -14,12 +14,23 @@ class WebApp:
         # Params: Dataset
         self.enzymeName = ''
         self.seqLength = False
+        self.minCounts = 1
         self.printN = 10
         self.xAxisLabel = False
         self.subsExp = {}
         self.countsExp = 'Initialize me'
+        self.countExpTotal = 0
+        self.countExpUnique = 0
+        self.saveTagExp = {}
         self.subsBg = {}
         self.countsBg = 'Initialize me'
+        self.countBgTotal = 0
+        self.countBgUnique = 0
+        self.saveTagBg = {}
+        self.saveTagFig = {}
+        self.fixMotif = False
+        self.datasetTypes = {'Exp': 'Experimental',
+                             'Bg': 'Background'}
 
         # Params: Files
         self.fileBg = []
@@ -56,7 +67,6 @@ class WebApp:
         # if figEMSquares:
         #     self.figSizeEM = (5, 8)  # (width, height)
         # else:
-        self.figSizeEM = (9.5, 8)
         self.figSize = (9.5, 8)
         self.figSizeMini = (self.figSize[0], 6)
         self.residueLabelType = 2  # 0 = full AA name, 1 = 3-letter code, 2 = 1 letter
@@ -72,12 +82,6 @@ class WebApp:
         # self. = False
         # self. = False
         # self. = False
-        #
-        # # Params:
-        # self. = False
-        # self. = False
-        # self. = False
-
 
         # Verify directory paths
         if self.pathData is not None:
@@ -89,6 +93,8 @@ class WebApp:
         if self.pathFigs is not None:
             if not os.path.exists(self.pathFigs):
                 os.makedirs(self.pathFigs, exist_ok=True)
+
+
 
     @staticmethod
     def residueColors():
@@ -118,10 +124,12 @@ class WebApp:
             'V': color[0]
         }
 
+
     def pressButton(self, message):
         print(f'Received data: {message}')
 
         return {'key': 'Returned data'}
+
 
     def filterAA(self, form):
         self.log()  # Clear the log
@@ -129,13 +137,13 @@ class WebApp:
         # Process job parameters
         self.enzymeName = form['enzymeName']
         self.seqLength = int(form['seqLength'])
-
-        # Setup data structures
-        self.initDataStructures()
-        
         print('Processing Substrates')
+
+        # Evaluate job params
+        self.getFilter(form)
         
         return {'AA': 'VEHTVALKQNR'}
+
 
     def filterMotif(self, form):
         self.log()  # Clear the log
@@ -143,11 +151,11 @@ class WebApp:
         # Process job parameters
         self.enzymeName = form['enzymeName']
         self.seqLength = int(form['seqLength'])
-
-        # Setup data structures
-        self.initDataStructures()
-        
         print('Filtering Substrates')
+        self.fixMotif = True
+
+        # Evaluate job params
+        self.getFilter(form)
 
         return {'Motif': 'TVALK'}
 
@@ -188,7 +196,41 @@ class WebApp:
                 print(f'Tag: {tagFix}')
             self.datasetTag = tagFix
 
-        self.log(f'Dataset Tag: {self.datasetTag}\n')
+
+        # Initialize: Save tags
+        self.saveTagExp = {
+            'subsRaw': f'{self.enzymeName} - Subs Exp - '
+                    f'MinCounts {self.minCounts} - {self.seqLength} AA',
+            'countsRaw': f'{self.enzymeName} - AA Counts Exp - '
+                      f'MinCounts {self.minCounts} - {self.seqLength} AA',
+            'subs': f'{self.enzymeName} - Subs Exp - {self.datasetTag} - '
+                    f'MinCounts {self.minCounts} - {self.seqLength} AA',
+            'counts': f'{self.enzymeName} - AA Counts Exp - {self.datasetTag} - '
+                      f'MinCounts {self.minCounts} - {self.seqLength} AA'
+        }
+        self.saveTagBg = {
+            'subsRaw': f'{self.enzymeName} - Subs Exp - '
+                   f'MinCounts {self.minCounts} - {self.seqLength} AA',
+            'countsRaw': f'{self.enzymeName} - AA Counts Bg - '
+                      f'MinCounts {self.minCounts} - {self.seqLength} AA',
+            'subs': f'{self.enzymeName} - Subs Bg - {self.datasetTag} - '
+                    f'MinCounts {self.minCounts} - {self.seqLength} AA',
+            'counts': f'{self.enzymeName} - AA Counts Bg - {self.datasetTag} - '
+                      f'MinCounts {self.minCounts} - {self.seqLength} AA',
+        }
+        if self.fixMotif:
+            for tag, path in self.saveTagExp:
+                self.saveTagExp[tag] = (path.replace(f'{self.enzymeName}',
+                                                     f'{self.enzymeName} - Motif'))
+
+
+        self.saveTagFig = (f'{self.enzymeName} - Fig - {self.datasetTag} - '
+                           f'Min Counts {self.minCounts} - {self.seqLength} AA')
+
+        # Initialize data structures
+        self.xAxisLabel = [f'R{index}' for index in range(1, self.seqLength + 1)]
+        self.countsExp = pd.DataFrame(0, index=self.AA, columns=self.xAxisLabel)
+        self.countsBg = pd.DataFrame(0, index=self.AA, columns=self.xAxisLabel)
 
 
 
@@ -237,13 +279,32 @@ class WebApp:
 
 
 
-    def logSubs(self, subs, tag):
-        self.log(f'Substrates: {tag}')
-        for index, (sub, count) in enumerate(subs.items()):
+    def logSubs(self, substrates, datasetType):
+        self.log('================================== Substrates '
+                 '===================================')
+        self.log(f'Substrates: {datasetType}')
+        if datasetType == self.datasetTypes['Exp']:
+            self.countExpTotal = sum(substrates.values())
+            self.countExpUnique = len(substrates.keys())
+            self.log(f'     Total Substrates: {self.countExpTotal:,}\n'
+                     f'    Unique Substrates: {self.countExpUnique:,}\n')
+        elif datasetType == self.datasetTypes['Bg']:
+            self.countBgTotal = sum(substrates.values())
+            self.countBgUnique = len(substrates.keys())
+            self.log(f'     Total Substrates: {self.countBgTotal:,}\n'
+                     f'    Unique Substrates: {self.countBgUnique:,}\n')
+        else:
+            self.logError(function='sampleSize()',
+                          msg=f'Unknown dataset type: {datasetType}')
+
+        self.log(f'Top {self.printN:,} {datasetType} Sequences')
+        for index, (sub, count) in enumerate(substrates.items()):
             if index >= self.printN:
-                self.log('\n')
+                self.log('')
                 break
             self.log(f'     {sub}: {count}')
+
+
 
 
 
@@ -263,13 +324,6 @@ class WebApp:
 
 
 
-    def initDataStructures(self):
-        self.xAxisLabel = [f'R{index}' for index in range(1, self.seqLength + 1)]
-        self.countsExp = pd.DataFrame(0, index=self.AA, columns=self.xAxisLabel)
-        self.countsBg = pd.DataFrame(0, index=self.AA, columns=self.xAxisLabel)
-
-
-
     def evalDNA(self, form):
         self.log()  # Clear the log
 
@@ -282,8 +336,6 @@ class WebApp:
         self.seqLength = int(form['seqLength'])
         self.minPhred = int(form['minPhred']) if form['minPhred'] != '' else 0
 
-        # Setup data structures
-        self.initDataStructures()
 
         # Log job params
         self.log(f'================================== Process DNA '
@@ -293,8 +345,9 @@ class WebApp:
                  f'Sequence Length: {self.seqLength}\n'
                  f'Min Phred Score: {self.minPhred}')
 
-        # Evaluate input form
+        # Evaluate job params
         self.getFilter(form)
+        self.log(f'Dataset Filter: {self.datasetTag}\n\n')
 
         # Params: Tmp
         self.fileExp = 'data/variantsExp.fastq' # Update when using files
@@ -304,32 +357,37 @@ class WebApp:
 
         # Load the data
         if self.fileExp:
-            dType = 'Experimental'
-            self.loadDNA(path=self.fileExp, datasetType=dType, forwardRead=True)
+            self.loadDNA(path=self.fileExp,
+                         datasetType=self.datasetTypes['Exp'],
+                         forwardRead=True)
         if self.fileBg:
-            dType = 'Background'
-            self.loadDNA(path=self.fileBg, datasetType=dType, forwardRead=True)
+            self.loadDNA(path=self.fileBg,
+                         datasetType=self.datasetTypes['Bg'],
+                         forwardRead=True)
+
 
         # Sort data
-        self.log('\nExtracted Substrates:')
         if self.subsExp:
             self.subsExp = dict(sorted(self.subsExp.items(),
                                        key=lambda item: item[1], reverse=True))
-            self.logSubs(subs=self.subsExp, tag='Experimental')
+            self.logSubs(substrates=self.subsExp, datasetType=self.datasetTypes['Exp'])
+            self.saveSubstrates(substrates=self.subsExp,
+                                datasetType=self.datasetTypes['Exp'], rawSubs=True)
         if self.subsBg:
             self.subsBg = dict(sorted(self.subsBg.items(),
                                       key=lambda item: item[1], reverse=True))
-            self.logSubs(subs=self.subsBg, tag='Background')
+            self.logSubs(substrates=self.subsBg, datasetType=self.datasetTypes['Bg'])
+            self.saveSubstrates(substrates=self.subsBg,
+                                datasetType=self.datasetTypes['Bg'], rawSubs=True)
+
 
         # Count AAs
         if self.fileExp:
-            dType = 'Experimental'
             self.countAA(substrates=self.subsExp, countMatrix=self.countsExp,
-                         datasetType=dType, fromDNA=True)
+                         datasetType=self.datasetTypes['Exp'], fromDNA=True)
         if self.fileBg:
-            dType = 'Background'
             self.countAA(substrates=self.subsBg, countMatrix=self.countsBg,
-                         datasetType=dType, fromDNA=True)
+                         datasetType=self.datasetTypes['Bg'], fromDNA=True)
 
         return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
 
@@ -354,14 +412,16 @@ class WebApp:
 
 
     def translate(self, data, datasetType, forwardRead):
+        self.log('================================= Translate DNA '
+                 '=================================')
         substrates = {}
         totalSubsExtracted = 0
         totalSeqsDNA = 0
         self.printN = 10
         if forwardRead:
-            self.log('\nTranslating: Forward Read')
+            self.log('Translating: Forward Read')
         else:
-            self.log('\nTranslating: Reverse Read')
+            self.log('Translating: Reverse Read')
         self.log(f'    Dataset: {datasetType}')
 
         # Inspect the file
@@ -371,7 +431,7 @@ class WebApp:
             if 'phred_quality' in datapoint.letter_annotations:
                 useQS = True
             break
-        self.log(f' Inspect QS: {useQS}\n')
+        self.log(f' Inspect QS: {useQS}\n\n')
 
         # Inspect the datasetType parameter
         if datasetType != 'Experimental' and datasetType != 'Background':
@@ -529,13 +589,13 @@ class WebApp:
         extractionEfficiency(fullSet=True)  # Evaluate data quality
 
         # Record substrates
-        if datasetType == 'Experimental':
+        if datasetType == self.datasetTypes['Exp']:
             for substrate, count in substrates.items():
                 if substrate in self.subsExp.keys():
                     self.subsExp[substrate] += count
                 else:
                     self.subsExp[substrate] = count
-        elif datasetType == 'Background':
+        elif datasetType == self.datasetTypes['Bg']:
             for substrate, count in substrates.items():
                 if substrate in self.subsExp.keys():
                     self.subsBg[substrate] += count
@@ -544,6 +604,33 @@ class WebApp:
         else:
             self.logError(function='translate()',
                           msg=f'Unknown dataset type: {datasetType}')
+        self.log('')
+
+
+
+    def saveSubstrates(self, substrates, datasetType, rawSubs=False):
+        path = None
+        if rawSubs:
+            if datasetType == self.datasetTypes['Exp']:
+                path = self.saveTagExp['subsRaw']
+            elif datasetType == self.datasetTypes['Bg']:
+                path = self.saveTagBg['subsRaw']
+            else:
+                self.logError(function='saveSubstrates()',
+                              msg=f'Unknown dataset type: {datasetType}')
+        elif self.datasetTag is not None:
+            print(f'Saving Substrates: {datasetType}\n')
+            if datasetType == self.datasetTypes['Exp']:
+                path = self.saveTagExp['subs']
+            elif datasetType == self.datasetTypes['Bg']:
+                path = self.saveTagBg['subs']
+            else:
+                self.logError(function='saveSubstrates()',
+                              msg=f'Unknown dataset type: {datasetType}')
+        else:
+            print(f'Dont save, dataset tag: {self.datasetTag}\n')
+
+        self.log(f'Saving Substrates: {datasetType}\n     {path}\n\n')
 
 
 
@@ -567,4 +654,4 @@ class WebApp:
                     for index, AA in enumerate(substrate):
                         countMatrix.loc[AA, f'R{index + 1}'] += count
         self.log(f'Total {countMatrix}\n\n')
-        sys.exit()
+
