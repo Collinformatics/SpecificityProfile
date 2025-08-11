@@ -5,8 +5,10 @@ import random
 inputSeqExp = "GTTATTTTACAACTTGAACGTGTT"
 inputSeqBg =  "AAGACTATCACCAATTGGTATCAG"
 
-# Number of variants
-N=500
+# Dataset parameters
+N=500 # Number of variants
+oddMutationExp = 40 # Percent chance of mutating a codon in experimental set
+oddMutationBg = 90
 
 
 def generateVariants(sequence, mutationOdds=4, numVariants=50):
@@ -19,7 +21,7 @@ def generateVariants(sequence, mutationOdds=4, numVariants=50):
         var = list(sequence)
         for index in range(0, len(sequence), 3):
             codon = sequence[index:index + 3]
-            if random.randint(1, 10) >= mutationOdds:
+            if random.randint(0, 100) >= mutationOdds:
                 bp = codon[random.randint(0, 2)]
                 bpNew = random.choice([b for b in bases if b != bp])
                 var[index] = bpNew
@@ -44,8 +46,8 @@ def saveSeqs(variants, fileName):
 
 
 # Generate variants
-variantsExp = generateVariants(inputSeqExp, 4, numVariants=N)
-variantsBg = generateVariants(inputSeqBg, 9, numVariants=N)
+variantsExp = generateVariants(inputSeqExp, mutationOdds=oddMutationExp, numVariants=N)
+variantsBg = generateVariants(inputSeqBg, mutationOdds=oddMutationBg, numVariants=N)
 
 # Save to FASTA and FASTQ
 pathExp = "data/variantsExp.fastq"
