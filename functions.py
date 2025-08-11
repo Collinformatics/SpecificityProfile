@@ -597,7 +597,7 @@ class WebApp:
                     self.subsExp[substrate] = count
         elif datasetType == self.datasetTypes['Bg']:
             for substrate, count in substrates.items():
-                if substrate in self.subsExp.keys():
+                if substrate in self.subsBg.keys():
                     self.subsBg[substrate] += count
                 else:
                     self.subsBg[substrate] = count
