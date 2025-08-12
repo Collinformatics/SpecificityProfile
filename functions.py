@@ -35,6 +35,7 @@ class WebApp:
                              'Bg': 'Background'}
 
         # Params: Files
+        self.queueLog = queue.Queue()
         self.fileExp = []
         self.seqExp = None
         self.fileBg = []
@@ -275,9 +276,15 @@ class WebApp:
         if txt is None:
             with open(self.pathLog, 'w'):
                 pass
-        else:
-            with open(self.pathLog, 'a') as log:
-                log.write(f'{txt}\n')
+        # else:
+        #     with open(self.pathLog, 'a') as log:
+        #         log.write(f'{txt}\n')
+
+
+    def logInQueue(self, logQueue):
+        with open(self.pathLog, 'a') as log:
+            while not logQueue.empty():
+                log.write(logQueue.get() + '\n')
 
 
 
@@ -305,8 +312,6 @@ class WebApp:
                 self.log('')
                 break
             self.log(f'     {sub}: {count}')
-
-
 
 
 
@@ -366,14 +371,17 @@ class WebApp:
         queueExp = queue.Queue()
         queueBg = queue.Queue()
         threads = []
+        logQueues = []
         if self.fileExp:
             # self.loadDNA(path=self.fileExp,
             #              datasetType=self.datasetTypes['Exp'],
             #              forwardRead=True)
             for file in self.fileExp:
+                queueLog = queue.Queue()
+                logQueues.append((f'exp_{file}.log', queueLog))
                 thread = threading.Thread(
                     target=self.loadDNA,
-                    args=(file, self.datasetTypes['Exp'], queueExp, True,))
+                    args=(file, self.datasetTypes['Exp'], queueExp, queueLog, True,))
                 thread.start()
                 threads.append(thread)
         if self.fileBg:
@@ -390,12 +398,26 @@ class WebApp:
         # Wait for all threads to finish
         for thread in threads:
             thread.join()
+        print(f'Here')
 
         # Get results from queue
-        resultsExp = queueExp.get()
-        resultsBg = queueBg.get()
+        print(queueExp)
+        if self.fileExp:
+            print('Start A')
+            resultsExp = queueExp.get()
+            print('Done A')
+        if self.fileBg:
+            print('Start B')
+            resultsBg = queueBg.get()
+            print('Done B')
+        print('There')
 
-        print(f'')
+        if logQueues:
+            for logName, queueLog in logQueues:
+                print(f'Log: {logName}, {type(queueLog)}')
+                self.logInQueue(queueLog)
+
+        print(f'\nResults:')
         for x in resultsExp:
             print(x)
         sys.exit()
@@ -431,7 +453,7 @@ class WebApp:
 
 
 
-    def loadDNA(self, path, datasetType, queue, forwardRead):
+    def loadDNA(self, path, datasetType, queueData, queueLog, forwardRead):
         # Open the file
         openFn = gzip.open if path.endswith('.gz') else open # Define open function
         with openFn(path, 'rt') as file: # 'rt' = read text mode
@@ -442,17 +464,21 @@ class WebApp:
                 data = SeqIO.parse(file, 'fasta')
                 warnings.simplefilter('ignore', BiopythonWarning)
             else:
-                self.log(f'ERROR: Unrecognized file\n     {path}\n\n')
-            self.log(f'Translate: {data}')
+                queueLog.put(f'ERROR: Unrecognized file\n     {path}\n\n')
+                # self.log(f'ERROR: Unrecognized file\n     {path}\n\n')
+            queueLog.put(f'Translate: {data}')
+            # self.log(f'Translate: {data}')
 
             # Translate the dna
-            substrates = self.translate(data, datasetType, forwardRead)
-            queue.put(substrates) # Put substrates in the queue
+            substrates = self.translate(data, datasetType, queueLog, forwardRead)
+            queueData.put(substrates) # Put substrates in the queue
 
 
 
-    def translate(self, data, datasetType, forwardRead):
+    def translate(self, data, datasetType, queueLog, forwardRead):
         self.log('================================= Translate DNA '
+                 '=================================')
+        queueLog.put('================================= Translate DNA '
                  '=================================')
         data = list(data)
 
@@ -462,9 +488,12 @@ class WebApp:
         self.printN = 10
         if forwardRead:
             self.log('Translating: Forward Read')
+            queueLog.put('Translating: Forward Read')
         else:
             self.log('Translating: Reverse Read')
+            queueLog.put()
         self.log(f'    Dataset: {datasetType}')
+        queueLog.put(f'    Dataset: {datasetType}')
 
         # Inspect the file
         useQS = False
@@ -473,6 +502,7 @@ class WebApp:
                 useQS = True
             break
         self.log(f' Inspect QS: {useQS}\n\n')
+        queueLog.put(f' Inspect QS: {useQS}\n\n')
 
         # Inspect the datasetType parameter
         if (datasetType != self.datasetTypes['Exp']
@@ -485,12 +515,18 @@ class WebApp:
             perExtracted = (totalSubsExtracted / totalSeqsDNA) * 100
             if fullSet:
                 self.log('- All Sequences')
+                queueLog.put('- All Sequences')
             else:
                 self.log(f'\nExtraction Efficiency: {datasetType}\n'
+                         f'- First {self.printN} Sequences')
+                queueLog.put(f'\nExtraction Efficiency: {datasetType}\n'
                          f'- First {self.printN} Sequences')
             self.log(f'     Evaluated DNA Sequences: {totalSeqsDNA:,}\n'
                      f'        Extracted Substrates: {totalSubsExtracted:,}\n'
                      f'       Extraction Efficiency: {round(perExtracted, 3)} %\n')
+            queueLog.put(f'     Evaluated DNA Sequences: {totalSeqsDNA:,}\n'
+                         f'        Extracted Substrates: {totalSubsExtracted:,}\n'
+                         f'       Extraction Efficiency: {round(perExtracted, 3)} %\n')
 
 
         # Translate DNA - Sample Set
@@ -537,6 +573,7 @@ class WebApp:
                                 totalSubsExtracted += 1
                             else:
                                 self.log('')
+                                queueLog.put('')
         else:
             for index, datapoint in enumerate(data):
 
@@ -638,6 +675,7 @@ class WebApp:
         extractionEfficiency(fullSet=True)  # Evaluate data quality
         self.log('')
         print('end:', totalSeqsDNA, len(data))
+        queueLog.put(f'End:, {totalSeqsDNA}, {len(data)}')
 
         return substrates
 
