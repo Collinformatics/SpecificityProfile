@@ -288,34 +288,46 @@ class WebApp:
 
 
 
-    def logSubs(self, substrates, datasetType):
+    def processSubs(self, substrates, datasetType, filteredAA):
         self.log('================================== Substrates '
                  '===================================')
         self.log(f'Substrates: {datasetType}\n')
 
-        filteredSubs = {}
-        for substrate, count in substrates.items():
-            for AA in substrate:
-                if AA not in self.AA:
-                    filteredSubs[substrate] = count
-        if filteredSubs:
-            self.log(f'Filtering Substrates:\n'
-                     f'     If a substrate contains an unaccented AA it will be removed.\n'
-                     f'     Accepted: {self.AA}\n\n'
-                     f'     Removed Substrates:')
-            for substrate, count in filteredSubs.items():
-                substrates.pop(substrate, count)
-                self.log(f'          {substrate}: {count}')
-            self.log('')
+        # Inspect sequences
+        if not filteredAA:
+            filteredSubs = {}
+            for substrate, count in substrates.items():
+                for AA in substrate:
+                    if AA not in self.AA:
+                        filteredSubs[substrate] = count
+            if filteredSubs:
+                self.log(f'Filtering Substrates:\n'
+                         f'     If a substrate contains an '
+                         f'unaccented AA it will be removed.\n'
+                         f'     Accepted: {self.AA}\n\n'
+                         f'     Removed Substrates:')
+                for substrate, count in filteredSubs.items():
+                    substrates.pop(substrate, count)
+                    self.log(f'          {substrate}: {count}')
+                self.log('')
 
-        #
-        self.log('\nSubstrate Totals:')
+        # Sort data
+        substrates = dict(sorted(substrates.items(),
+                                 key=lambda item: item[1], reverse=True))
+
+        # Count AAs
+        countMatrix = None
+        self.log('Substrate Totals:')
         if datasetType == self.datasetTypes['Exp']:
+            self.subsExp = substrates
+            countMatrix = self.countsExp
             self.countExpTotal = sum(substrates.values())
             self.countExpUnique = len(substrates.keys())
             self.log(f'     Total Substrates: {self.countExpTotal:,}\n'
                      f'    Unique Substrates: {self.countExpUnique:,}\n')
         elif datasetType == self.datasetTypes['Bg']:
+            self.subsBg = substrates
+            countMatrix = self.countsBg
             self.countBgTotal = sum(substrates.values())
             self.countBgUnique = len(substrates.keys())
             self.log(f'     Total Substrates: {self.countBgTotal:,}\n'
@@ -330,6 +342,15 @@ class WebApp:
                 break
             self.log(f'     {sub}: {count}')
         self.log('')
+
+        # Save data
+        self.saveSubstrates(substrates=substrates,
+                            datasetType=datasetType,
+                            filteredAA=filteredAA)
+
+        # Count AAs
+        self.countAA(substrates=substrates, countMatrix=countMatrix,
+                     datasetType=datasetType)
 
 
     def logErrorFn(self, function, msg, getStr=False):
@@ -391,38 +412,33 @@ class WebApp:
         # Placeholder for files
         self.fileExp = ['data/variantsExp.fastq', 'data/variantsExp2.fastq']
         self.fileBg = ['data/variantsBg.fasta', 'data/variantsBg2.fasta']
-        self.fileBg = False
 
         # Load the data
         threads = []
-
-        queueBg = queue.Queue()
         queuesExp = []
+        queuesExpLog = []
         queuesBg = []
-        queuesLog = []
-
+        queuesBgLog = []
         if self.fileExp:
-            # self.loadDNA(path=self.fileExp,
-            #              datasetType=self.datasetTypes['Exp'],
-            #              forwardRead=True)
             for file in self.fileExp:
                 queueExp = queue.Queue()
                 queueLog = queue.Queue()
                 queuesExp.append(queueExp)
-                queuesLog.append(queueLog)
+                queuesExpLog.append(queueLog)
                 thread = threading.Thread(
                     target=self.loadDNA,
                     args=(file, self.datasetTypes['Exp'], queueExp, queueLog, True,))
                 thread.start()
                 threads.append(thread)
         if self.fileBg:
-            # self.loadDNA(path=self.fileBg,
-            #              datasetType=self.datasetTypes['Bg'],
-            #              forwardRead=True)
             for file in self.fileBg:
+                queueBg = queue.Queue()
+                queueLog = queue.Queue()
+                queuesBg.append(queueBg)
+                queuesBgLog.append(queueLog)
                 thread = threading.Thread(
                     target=self.loadDNA,
-                    args=(file, self.datasetTypes['Bg'], queueBg, True,))
+                    args=(file, self.datasetTypes['Bg'], queueBg, queueLog, True,))
             thread.start()
             threads.append(thread)
 
@@ -430,9 +446,13 @@ class WebApp:
         for thread in threads:
             thread.join()
 
-        if queuesLog:
-            for queueLog in queuesLog:
-                self.logInQueue(queueLog)
+        # Log the output
+        if queuesExpLog:
+            for log in queuesExpLog:
+                self.logInQueue(log)
+        if queuesBgLog:
+            for log in queuesBgLog:
+                self.logInQueue(log)
 
         # Get results from queue
         if self.fileExp:
@@ -444,31 +464,24 @@ class WebApp:
                     else:
                         self.subsExp[substrate] = count
         if self.fileBg:
-            resultsBg = queueBg.get()
-
+            for queueData in queuesBg:
+                substrates = queueData.get()
+                for substrate, count in substrates.items():
+                    if substrate in self.subsExp.keys():
+                        self.subsBg[substrate] += count
+                    else:
+                        self.subsBg[substrate] = count
 
        # Sort substrates and count AA
         if self.subsExp:
-            # Sort data
-            self.subsExp = dict(sorted(self.subsExp.items(),
-                                       key=lambda item: item[1], reverse=True))
-            self.logSubs(substrates=self.subsExp, datasetType=self.datasetTypes['Exp'])
-            self.saveSubstrates(substrates=self.subsExp,
-                                datasetType=self.datasetTypes['Exp'], rawSubs=True)
+            self.processSubs(substrates=self.subsExp,
+                             datasetType=self.datasetTypes['Exp'],
+                             filteredAA=False)
 
-            # Count AAs
-            self.countAA(substrates=self.subsExp, countMatrix=self.countsExp,
-                         datasetType=self.datasetTypes['Exp'])
         if self.subsBg:
-            self.subsBg = dict(sorted(self.subsBg.items(),
-                                      key=lambda item: item[1], reverse=True))
-            self.logSubs(substrates=self.subsBg, datasetType=self.datasetTypes['Bg'])
-            self.saveSubstrates(substrates=self.subsBg,
-                                datasetType=self.datasetTypes['Bg'], rawSubs=True)
-
-            # Count AAs
-            self.countAA(substrates=self.subsBg, countMatrix=self.countsBg,
-                         datasetType=self.datasetTypes['Bg'])
+            self.processSubs(substrates=self.subsBg,
+                             datasetType=self.datasetTypes['Bg'],
+                             filteredAA=False)
 
         return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
 
@@ -694,17 +707,13 @@ class WebApp:
 
 
 
-    def saveSubstrates(self, substrates, datasetType, rawSubs=False):
+    def saveSubstrates(self, substrates, datasetType, filteredAA):
         path = None
-        if rawSubs:
-            if datasetType == self.datasetTypes['Exp']:
-                path = self.saveTagExp['subsRaw']
-            elif datasetType == self.datasetTypes['Bg']:
-                path = self.saveTagBg['subsRaw']
-            else:
-                self.logErrorFn(function='saveSubstrates()',
-                                msg=f'Unknown dataset type: {datasetType}')
-        elif self.datasetTag is not None:
+        if filteredAA:
+            if self.datasetTag is None:
+                print(f'Dont save, dataset tag: {self.datasetTag}\n')
+                sys.exit()
+
             print(f'Saving Substrates: {datasetType}\n')
             if datasetType == self.datasetTypes['Exp']:
                 path = self.saveTagExp['subs']
@@ -714,7 +723,13 @@ class WebApp:
                 self.logErrorFn(function='saveSubstrates()',
                                 msg=f'Unknown dataset type: {datasetType}')
         else:
-            print(f'Dont save, dataset tag: {self.datasetTag}\n')
+            if datasetType == self.datasetTypes['Exp']:
+                path = self.saveTagExp['subsRaw']
+            elif datasetType == self.datasetTypes['Bg']:
+                path = self.saveTagBg['subsRaw']
+            else:
+                self.logErrorFn(function='saveSubstrates()',
+                                msg=f'Unknown dataset type: {datasetType}')
 
         self.log(f'Saving Substrates: {datasetType}\n     {path}\n\n')
 
