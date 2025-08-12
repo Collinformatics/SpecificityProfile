@@ -276,9 +276,9 @@ class WebApp:
         if txt is None:
             with open(self.pathLog, 'w'):
                 pass
-        # else:
-        #     with open(self.pathLog, 'a') as log:
-        #         log.write(f'{txt}\n')
+        else:
+            with open(self.pathLog, 'a') as log:
+                log.write(f'{txt}\n')
 
 
     def logInQueue(self, logQueue):
@@ -303,8 +303,8 @@ class WebApp:
             self.log(f'     Total Substrates: {self.countBgTotal:,}\n'
                      f'    Unique Substrates: {self.countBgUnique:,}\n')
         else:
-            self.logError(function='sampleSize()',
-                          msg=f'Unknown dataset type: {datasetType}')
+            self.logErrorFn(function='sampleSize()',
+                            msg=f'Unknown dataset type: {datasetType}')
 
         self.log(f'Top {self.printN:,} {datasetType} Sequences')
         for index, (sub, count) in enumerate(substrates.items()):
@@ -315,19 +315,30 @@ class WebApp:
 
 
 
-    def logError(self, function, msg):
-        self.log(f'\n========================================='
-                 f'========================================\n'
-                 f'========================================='
-                 f'========================================\n\n'
-                 f'ERROR: {function}\n'
-                 f'{msg}\n\n'
-                 f'========================================='
-                 f'========================================\n'
-                 f'========================================='
-                 f'========================================\n'
-                 )
-        sys.exit(1)
+    def logErrorFn(self, function, msg, getStr=False):
+        if getStr:
+            return (f'\n========================================='
+                    f'========================================\n'
+                     f'========================================='
+                     f'========================================\n\n'
+                     f'ERROR: {function}\n'
+                     f'{msg}\n\n'
+                     f'========================================='
+                     f'========================================\n'
+                     f'========================================='
+                     f'========================================\n')
+        else:
+            self.log(f'\n========================================='
+                     f'========================================\n'
+                     f'========================================='
+                     f'========================================\n\n'
+                     f'ERROR: {function}\n'
+                     f'{msg}\n\n'
+                     f'========================================='
+                     f'========================================\n'
+                     f'========================================='
+                     f'========================================\n')
+            sys.exit(1)
 
 
 
@@ -378,7 +389,7 @@ class WebApp:
             #              forwardRead=True)
             for file in self.fileExp:
                 queueLog = queue.Queue()
-                logQueues.append((f'exp_{file}.log', queueLog))
+                logQueues.append(queueLog)
                 thread = threading.Thread(
                     target=self.loadDNA,
                     args=(file, self.datasetTypes['Exp'], queueExp, queueLog, True,))
@@ -398,7 +409,10 @@ class WebApp:
         # Wait for all threads to finish
         for thread in threads:
             thread.join()
-        print(f'Here')
+
+        if logQueues:
+            for queueLog in logQueues:
+                self.logInQueue(queueLog)
 
         # Get results from queue
         print(queueExp)
@@ -410,17 +424,10 @@ class WebApp:
             print('Start B')
             resultsBg = queueBg.get()
             print('Done B')
-        print('There')
-
-        if logQueues:
-            for logName, queueLog in logQueues:
-                print(f'Log: {logName}, {type(queueLog)}')
-                self.logInQueue(queueLog)
 
         print(f'\nResults:')
         for x in resultsExp:
             print(x)
-        sys.exit()
 
         print(f'\nResults: {resultsExp}\n\n')
         print(f'\nResults: {resultsBg}\n\n')
@@ -464,10 +471,11 @@ class WebApp:
                 data = SeqIO.parse(file, 'fasta')
                 warnings.simplefilter('ignore', BiopythonWarning)
             else:
-                queueLog.put(f'ERROR: Unrecognized file\n     {path}\n\n')
-                # self.log(f'ERROR: Unrecognized file\n     {path}\n\n')
-            queueLog.put(f'Translate: {data}')
-            # self.log(f'Translate: {data}')
+                queueLog.put(self.logErrorFn(
+                    function='loadDNA()',
+                    msg=f'Unrecognized file\n     {path}',
+                    getStr=True))
+                return None
 
             # Translate the dna
             substrates = self.translate(data, datasetType, queueLog, forwardRead)
@@ -476,23 +484,17 @@ class WebApp:
 
 
     def translate(self, data, datasetType, queueLog, forwardRead):
-        self.log('================================= Translate DNA '
-                 '=================================')
         queueLog.put('================================= Translate DNA '
                  '=================================')
         data = list(data)
-
         substrates = {}
         totalSubsExtracted = 0
         totalSeqsDNA = 0
         self.printN = 10
         if forwardRead:
-            self.log('Translating: Forward Read')
             queueLog.put('Translating: Forward Read')
         else:
-            self.log('Translating: Reverse Read')
             queueLog.put()
-        self.log(f'    Dataset: {datasetType}')
         queueLog.put(f'    Dataset: {datasetType}')
 
         # Inspect the file
@@ -501,29 +503,22 @@ class WebApp:
             if 'phred_quality' in datapoint.letter_annotations:
                 useQS = True
             break
-        self.log(f' Inspect QS: {useQS}\n\n')
         queueLog.put(f' Inspect QS: {useQS}\n\n')
 
         # Inspect the datasetType parameter
         if (datasetType != self.datasetTypes['Exp']
                 and datasetType != self.datasetTypes['Bg']):
-            self.logError(function='translate()',
-                          msg=f'Unknown dataset type: {datasetType}')
+            self.logErrorFn(function='translate()',
+                            msg=f'Unknown dataset type: {datasetType}')
 
 
         def extractionEfficiency(fullSet=False):
             perExtracted = (totalSubsExtracted / totalSeqsDNA) * 100
             if fullSet:
-                self.log('- All Sequences')
                 queueLog.put('- All Sequences')
             else:
-                self.log(f'\nExtraction Efficiency: {datasetType}\n'
-                         f'- First {self.printN} Sequences')
                 queueLog.put(f'\nExtraction Efficiency: {datasetType}\n'
                          f'- First {self.printN} Sequences')
-            self.log(f'     Evaluated DNA Sequences: {totalSeqsDNA:,}\n'
-                     f'        Extracted Substrates: {totalSubsExtracted:,}\n'
-                     f'       Extraction Efficiency: {round(perExtracted, 3)} %\n')
             queueLog.put(f'     Evaluated DNA Sequences: {totalSeqsDNA:,}\n'
                          f'        Extracted Substrates: {totalSubsExtracted:,}\n'
                          f'       Extraction Efficiency: {round(perExtracted, 3)} %\n')
@@ -540,8 +535,8 @@ class WebApp:
                 # Process datapoint
                 totalSeqsDNA += 1
                 dna = str(datapoint.seq)
-                self.log(f'DNA Seq: {dna}')
-                print(f'DNA Seq: {dna}')
+                queueLog.put(f'DNA Seq: {dna}')
+
 
                 # Inspect full dna seq
                 if self.seq5Prime in dna and self.seq3Prime in dna:
@@ -553,26 +548,24 @@ class WebApp:
 
                     # Extract substrate dna seq
                     substrateDNA = dna[start:end].strip()
-                    self.log(f'Sub Seq: {substrateDNA}')
+                    queueLog.put(f'Sub Seq: {substrateDNA}')
                     if len(substrateDNA) == self.seqLength * 3:
                         # Express substrate
                         substrate = str(Seq.translate(substrateDNA))
-                        self.log(f'    Sub: {substrate}')
-                        print(f'    Sub: {substrate}')
+                        queueLog.put(f'    Sub: {substrate}')
 
                         # Inspect substrate seq: PRINT ONLY
                         if 'X' not in substrate and '*' not in substrate:
                             qs = qs[start:end]
-                            self.log(f'     QS: {qs}')
+                            queueLog.put(f'     QS: {qs}')
                             if all(score >= self.minPhred for score in qs):
-                                self.log(f'Keep Substrate\n')
+                                queueLog.put(f'Keep Substrate\n')
                                 if substrate in substrates.keys():
                                     substrates[substrate] += 1
                                 else:
                                     substrates[substrate] = 1
                                 totalSubsExtracted += 1
                             else:
-                                self.log('')
                                 queueLog.put('')
         else:
             for index, datapoint in enumerate(data):
@@ -583,7 +576,7 @@ class WebApp:
                 # Process datapoint
                 totalSeqsDNA += 1
                 dna = str(datapoint.seq)
-                self.log(f'DNA Seq: {dna}')
+                queueLog.put(f'DNA Seq: {dna}')
 
                 # Inspect full dna seq
                 if self.seq5Prime in dna and self.seq3Prime in dna:
@@ -594,23 +587,23 @@ class WebApp:
 
                     # Extract substrate dna seq
                     substrateDNA = dna[start:end].strip()
-                    self.log(f'Sub Seq: {substrateDNA}')
+                    queueLog.put(f'Sub Seq: {substrateDNA}')
 
                     if len(substrateDNA) == self.seqLength * 3:
                         # Express substrate
                         substrate = str(Seq.translate(substrateDNA))
-                        self.log(f'    Sub: {substrate}')
+                        queueLog.put(f'    Sub: {substrate}')
 
                         # Inspect substrate seq: PRINT ONLY
                         if 'X' not in substrate and '*' not in substrate:
-                            self.log(f'Keep Substrate\n')
+                            queueLog.put(f'Keep Substrate\n')
                             if substrate in substrates.keys():
                                 substrates[substrate] += 1
                             else:
                                 substrates[substrate] = 1
                             totalSubsExtracted += 1
                         else:
-                            self.log('')
+                            queueLog.put('')
         extractionEfficiency() # Evaluate data quality
 
 
@@ -673,9 +666,7 @@ class WebApp:
                                 substrates[substrate] = 1
                             totalSubsExtracted += 1
         extractionEfficiency(fullSet=True)  # Evaluate data quality
-        self.log('')
-        print('end:', totalSeqsDNA, len(data))
-        queueLog.put(f'End:, {totalSeqsDNA}, {len(data)}')
+        queueLog.put('')
 
         return substrates
 
@@ -689,8 +680,8 @@ class WebApp:
             elif datasetType == self.datasetTypes['Bg']:
                 path = self.saveTagBg['subsRaw']
             else:
-                self.logError(function='saveSubstrates()',
-                              msg=f'Unknown dataset type: {datasetType}')
+                self.logErrorFn(function='saveSubstrates()',
+                                msg=f'Unknown dataset type: {datasetType}')
         elif self.datasetTag is not None:
             print(f'Saving Substrates: {datasetType}\n')
             if datasetType == self.datasetTypes['Exp']:
@@ -698,8 +689,8 @@ class WebApp:
             elif datasetType == self.datasetTypes['Bg']:
                 path = self.saveTagBg['subs']
             else:
-                self.logError(function='saveSubstrates()',
-                              msg=f'Unknown dataset type: {datasetType}')
+                self.logErrorFn(function='saveSubstrates()',
+                                msg=f'Unknown dataset type: {datasetType}')
         else:
             print(f'Dont save, dataset tag: {self.datasetTag}\n')
 
