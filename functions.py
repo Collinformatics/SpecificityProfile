@@ -309,10 +309,9 @@ class WebApp:
         self.log(f'Top {self.printN:,} {datasetType} Sequences')
         for index, (sub, count) in enumerate(substrates.items()):
             if index >= self.printN:
-                self.log('')
                 break
             self.log(f'     {sub}: {count}')
-
+        self.log('')
 
 
     def logErrorFn(self, function, msg, getStr=False):
@@ -419,10 +418,8 @@ class WebApp:
 
         # Get results from queue
         if self.fileExp:
-            print(f'N Results: {len(queuesExp)}')
             N = 1
             for queueData in queuesExp:
-                print(f'Set: {N}')
                 N += 1
                 set = queueData.get()
                 for substrate, count in set.items():
@@ -430,18 +427,22 @@ class WebApp:
                         self.subsExp[substrate] += count
                     else:
                         self.subsExp[substrate] = count
-
         if self.fileBg:
             resultsBg = queueBg.get()
 
 
-        # Sort data
+       # Sort substrates and count AA
         if self.subsExp:
+            # Sort data
             self.subsExp = dict(sorted(self.subsExp.items(),
                                        key=lambda item: item[1], reverse=True))
             self.logSubs(substrates=self.subsExp, datasetType=self.datasetTypes['Exp'])
             self.saveSubstrates(substrates=self.subsExp,
                                 datasetType=self.datasetTypes['Exp'], rawSubs=True)
+
+            # Count AAs
+            self.countAA(substrates=self.subsExp, countMatrix=self.countsExp,
+                         datasetType=self.datasetTypes['Exp'], fromDNA=True)
         if self.subsBg:
             self.subsBg = dict(sorted(self.subsBg.items(),
                                       key=lambda item: item[1], reverse=True))
@@ -451,9 +452,7 @@ class WebApp:
 
 
         # Count AAs
-        if self.fileExp:
-            self.countAA(substrates=self.subsExp, countMatrix=self.countsExp,
-                         datasetType=self.datasetTypes['Exp'], fromDNA=True)
+
         if self.fileBg:
             self.countAA(substrates=self.subsBg, countMatrix=self.countsBg,
                          datasetType=self.datasetTypes['Bg'], fromDNA=True)
