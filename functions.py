@@ -291,7 +291,25 @@ class WebApp:
     def logSubs(self, substrates, datasetType):
         self.log('================================== Substrates '
                  '===================================')
-        self.log(f'Substrates: {datasetType}')
+        self.log(f'Substrates: {datasetType}\n')
+
+        filteredSubs = {}
+        for substrate, count in substrates.items():
+            for AA in substrate:
+                if AA not in self.AA:
+                    filteredSubs[substrate] = count
+        if filteredSubs:
+            self.log(f'Filtering Substrates:\n'
+                     f'     If a substrate contains an unaccented AA it will be removed.\n'
+                     f'     Accepted: {self.AA}\n\n'
+                     f'     Removed Substrates:')
+            for substrate, count in filteredSubs.items():
+                substrates.pop(substrate, count)
+                self.log(f'          {substrate}: {count}')
+            self.log('')
+
+        #
+        self.log('\nSubstrate Totals:')
         if datasetType == self.datasetTypes['Exp']:
             self.countExpTotal = sum(substrates.values())
             self.countExpUnique = len(substrates.keys())
@@ -418,11 +436,9 @@ class WebApp:
 
         # Get results from queue
         if self.fileExp:
-            N = 1
             for queueData in queuesExp:
-                N += 1
-                set = queueData.get()
-                for substrate, count in set.items():
+                substrates = queueData.get()
+                for substrate, count in substrates.items():
                     if substrate in self.subsExp.keys():
                         self.subsExp[substrate] += count
                     else:
@@ -442,7 +458,7 @@ class WebApp:
 
             # Count AAs
             self.countAA(substrates=self.subsExp, countMatrix=self.countsExp,
-                         datasetType=self.datasetTypes['Exp'], fromDNA=True)
+                         datasetType=self.datasetTypes['Exp'])
         if self.subsBg:
             self.subsBg = dict(sorted(self.subsBg.items(),
                                       key=lambda item: item[1], reverse=True))
@@ -450,14 +466,14 @@ class WebApp:
             self.saveSubstrates(substrates=self.subsBg,
                                 datasetType=self.datasetTypes['Bg'], rawSubs=True)
 
-
-        # Count AAs
-
-        if self.fileBg:
+            # Count AAs
             self.countAA(substrates=self.subsBg, countMatrix=self.countsBg,
-                         datasetType=self.datasetTypes['Bg'], fromDNA=True)
+                         datasetType=self.datasetTypes['Bg'])
 
         return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
+
+
+
 
 
 
@@ -482,12 +498,13 @@ class WebApp:
 
             if translate:
                 # Translate the dna
-                substrates = self.translate(data, datasetType, queueLog, forwardRead)
+                substrates = self.translate(data, path, datasetType,
+                                            queueLog, forwardRead)
                 queueData.put(substrates) # Put substrates in the queue
 
 
 
-    def translate(self, data, datasetType, queueLog, forwardRead):
+    def translate(self, data, fileName, datasetType, queueLog, forwardRead):
         queueLog.put('================================= Translate DNA '
                  '=================================')
         data = list(data)
@@ -495,11 +512,13 @@ class WebApp:
         totalSubsExtracted = 0
         totalSeqsDNA = 0
         self.printN = 10
+
+        queueLog.put(f'File Name: {fileName}')
         if forwardRead:
-            queueLog.put('Translating: Forward Read')
+            queueLog.put('Read Type: Forward Read')
         else:
-            queueLog.put()
-        queueLog.put(f'    Dataset: {datasetType}')
+            queueLog.put('Read Type: Reverse Read')
+        queueLog.put(f'  Dataset: {datasetType}')
 
         # Inspect the file
         useQS = False
@@ -507,7 +526,7 @@ class WebApp:
             if 'phred_quality' in datapoint.letter_annotations:
                 useQS = True
             break
-        queueLog.put(f' Inspect QS: {useQS}\n\n')
+        queueLog.put(f'  Eval QS: {useQS}\n\n')
 
         # Inspect the datasetType parameter
         if (datasetType != self.datasetTypes['Exp']
@@ -550,11 +569,11 @@ class WebApp:
 
                     # Extract substrate dna seq
                     substrateDNA = dna[start:end].strip()
-                    queueLog.put(f'Sub Seq: {substrateDNA}')
+                    queueLog.put(f'Sub DNA: {substrateDNA}')
                     if len(substrateDNA) == self.seqLength * 3:
                         # Express substrate
                         substrate = str(Seq.translate(substrateDNA))
-                        queueLog.put(f'    Sub: {substrate}')
+                        queueLog.put(f'Sub Seq: {substrate}')
 
                         # Inspect substrate seq: PRINT ONLY
                         if 'X' not in substrate and '*' not in substrate:
@@ -589,12 +608,12 @@ class WebApp:
 
                     # Extract substrate dna seq
                     substrateDNA = dna[start:end].strip()
-                    queueLog.put(f'Sub Seq: {substrateDNA}')
+                    queueLog.put(f'Sub DNA: {substrateDNA}')
 
                     if len(substrateDNA) == self.seqLength * 3:
                         # Express substrate
                         substrate = str(Seq.translate(substrateDNA))
-                        queueLog.put(f'    Sub: {substrate}')
+                        queueLog.put(f'Sub Seq: {substrate}')
 
                         # Inspect substrate seq: PRINT ONLY
                         if 'X' not in substrate and '*' not in substrate:
@@ -701,24 +720,17 @@ class WebApp:
 
 
 
-    def countAA(self, substrates, countMatrix, datasetType, fromDNA=False):
+    def countAA(self, substrates, countMatrix, datasetType):
         self.log('=================================== Count AA '
                  '====================================')
         self.log(f'Dataset: {datasetType}\n'
                  f'Unique Substrates: {len(substrates.keys())}')
+        totalCounts = 0
+        for substrate, count in substrates.items():
+            totalCounts += count
+            for index, AA in enumerate(substrate):
+                countMatrix.loc[AA, f'R{index + 1}'] += count
+        self.log(f'Unique Substrates: {len(substrates.keys())}\n'
+                 f'Total Counts: {totalCounts}\n\n{countMatrix}\n\n')
 
-        if fromDNA:
-            for substrate, count in substrates.items():
-                countSub = True
-                for AA in substrate:
-                    if AA not in self.AA:
-                        countSub = False
-                        self.log(f'Warning: An AA ({AA}) in substrate ({substrate}) '
-                                 f'is not an accepted AAs\n'
-                                 f'     Accepted: {self.AA}\n')
-                        break
-                if countSub:
-                    for index, AA in enumerate(substrate):
-                        countMatrix.loc[AA, f'R{index + 1}'] += count
-        self.log(f'Total {countMatrix}\n\n')
 
