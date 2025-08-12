@@ -4,7 +4,9 @@ from Bio import BiopythonWarning
 import gzip
 import os.path
 import pandas as pd
+import queue
 import sys
+import threading
 import warnings
 
 
@@ -33,7 +35,7 @@ class WebApp:
                              'Bg': 'Background'}
 
         # Params: Files
-        self.fileBg = []
+        self.fileExp = []
         self.seqExp = None
         self.fileBg = []
         self.seqBg = None
@@ -345,25 +347,61 @@ class WebApp:
                  f'Sequence Length: {self.seqLength}\n'
                  f'Min Phred Score: {self.minPhred}')
 
+
         # Evaluate job params
         self.getFilter(form)
         self.log(f'Dataset Filter: {self.datasetTag}\n\n')
 
         # Params: Tmp
-        self.fileExp = 'data/variantsExp.fastq' # Update when using files
-        self.fileBg = 'data/variantsBg.fasta'
+        # Update when using files
+
         # if type(file) == 'fastq':
         #     useQS = True
 
+        self.fileExp = ['data/variantsExp.fastq', 'data/variantsExp2.fastq']
+        self.fileBg = ['data/variantsBg.fasta', 'data/variantsBg2.fasta']
+        self.fileBg = False
+
         # Load the data
+        queueExp = queue.Queue()
+        queueBg = queue.Queue()
+        threads = []
         if self.fileExp:
-            self.loadDNA(path=self.fileExp,
-                         datasetType=self.datasetTypes['Exp'],
-                         forwardRead=True)
+            # self.loadDNA(path=self.fileExp,
+            #              datasetType=self.datasetTypes['Exp'],
+            #              forwardRead=True)
+            for file in self.fileExp:
+                thread = threading.Thread(
+                    target=self.loadDNA,
+                    args=(file, self.datasetTypes['Exp'], queueExp, True,))
+                thread.start()
+                threads.append(thread)
         if self.fileBg:
-            self.loadDNA(path=self.fileBg,
-                         datasetType=self.datasetTypes['Bg'],
-                         forwardRead=True)
+            # self.loadDNA(path=self.fileBg,
+            #              datasetType=self.datasetTypes['Bg'],
+            #              forwardRead=True)
+            for file in self.fileBg:
+                thread = threading.Thread(
+                    target=self.loadDNA,
+                    args=(file, self.datasetTypes['Bg'], queueBg, True,))
+            thread.start()
+            threads.append(thread)
+
+        # Wait for all threads to finish
+        for thread in threads:
+            thread.join()
+
+        # Get results from queue
+        resultsExp = queueExp.get()
+        resultsBg = queueBg.get()
+
+        print(f'')
+        for x in resultsExp:
+            print(x)
+        sys.exit()
+
+        print(f'\nResults: {resultsExp}\n\n')
+        print(f'\nResults: {resultsBg}\n\n')
 
 
         # Sort data
@@ -393,7 +431,7 @@ class WebApp:
 
 
 
-    def loadDNA(self, path, datasetType, forwardRead):
+    def loadDNA(self, path, datasetType, queue, forwardRead):
         # Open the file
         openFn = gzip.open if path.endswith('.gz') else open # Define open function
         with openFn(path, 'rt') as file: # 'rt' = read text mode
@@ -405,15 +443,19 @@ class WebApp:
                 warnings.simplefilter('ignore', BiopythonWarning)
             else:
                 self.log(f'ERROR: Unrecognized file\n     {path}\n\n')
+            self.log(f'Translate: {data}')
 
             # Translate the dna
-            self.translate(data, datasetType, forwardRead)
+            substrates = self.translate(data, datasetType, forwardRead)
+            queue.put(substrates) # Put substrates in the queue
 
 
 
     def translate(self, data, datasetType, forwardRead):
         self.log('================================= Translate DNA '
                  '=================================')
+        data = list(data)
+
         substrates = {}
         totalSubsExtracted = 0
         totalSeqsDNA = 0
@@ -427,14 +469,14 @@ class WebApp:
         # Inspect the file
         useQS = False
         for datapoint in data:
-            print(f'{datapoint}\n')
             if 'phred_quality' in datapoint.letter_annotations:
                 useQS = True
             break
         self.log(f' Inspect QS: {useQS}\n\n')
 
         # Inspect the datasetType parameter
-        if datasetType != 'Experimental' and datasetType != 'Background':
+        if (datasetType != self.datasetTypes['Exp']
+                and datasetType != self.datasetTypes['Bg']):
             self.logError(function='translate()',
                           msg=f'Unknown dataset type: {datasetType}')
 
@@ -452,7 +494,9 @@ class WebApp:
 
 
         # Translate DNA - Sample Set
+        print(f'QS: {useQS}\n')
         if useQS:
+            print(f'Start: {type(data)}\n')
             for index, datapoint in enumerate(data):
                 if totalSubsExtracted >= self.printN: # Exit loop
                     break
@@ -461,6 +505,7 @@ class WebApp:
                 totalSeqsDNA += 1
                 dna = str(datapoint.seq)
                 self.log(f'DNA Seq: {dna}')
+                print(f'DNA Seq: {dna}')
 
                 # Inspect full dna seq
                 if self.seq5Prime in dna and self.seq3Prime in dna:
@@ -477,6 +522,7 @@ class WebApp:
                         # Express substrate
                         substrate = str(Seq.translate(substrateDNA))
                         self.log(f'    Sub: {substrate}')
+                        print(f'    Sub: {substrate}')
 
                         # Inspect substrate seq: PRINT ONLY
                         if 'X' not in substrate and '*' not in substrate:
@@ -493,6 +539,7 @@ class WebApp:
                                 self.log('')
         else:
             for index, datapoint in enumerate(data):
+
                 if totalSubsExtracted >= self.printN:
                     break
 
@@ -531,6 +578,8 @@ class WebApp:
 
 
         # Translate DNA - Full Set
+        totalSeqsDNA = 0
+        totalSubsExtracted = 0
         if useQS:
             for index, datapoint in enumerate(data):
                 # Process datapoint
@@ -587,24 +636,10 @@ class WebApp:
                                 substrates[substrate] = 1
                             totalSubsExtracted += 1
         extractionEfficiency(fullSet=True)  # Evaluate data quality
-
-        # Record substrates
-        if datasetType == self.datasetTypes['Exp']:
-            for substrate, count in substrates.items():
-                if substrate in self.subsExp.keys():
-                    self.subsExp[substrate] += count
-                else:
-                    self.subsExp[substrate] = count
-        elif datasetType == self.datasetTypes['Bg']:
-            for substrate, count in substrates.items():
-                if substrate in self.subsBg.keys():
-                    self.subsBg[substrate] += count
-                else:
-                    self.subsBg[substrate] = count
-        else:
-            self.logError(function='translate()',
-                          msg=f'Unknown dataset type: {datasetType}')
         self.log('')
+        print('end:', totalSeqsDNA, len(data))
+
+        return substrates
 
 
 
