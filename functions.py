@@ -439,8 +439,8 @@ class WebApp:
                 thread = threading.Thread(
                     target=self.loadDNA,
                     args=(file, self.datasetTypes['Bg'], queueBg, queueLog, True,))
-            thread.start()
-            threads.append(thread)
+                thread.start()
+                threads.append(thread)
 
         # Wait for all threads to finish
         for thread in threads:
@@ -467,7 +467,7 @@ class WebApp:
             for queueData in queuesBg:
                 substrates = queueData.get()
                 for substrate, count in substrates.items():
-                    if substrate in self.subsExp.keys():
+                    if substrate in self.subsBg.keys():
                         self.subsBg[substrate] += count
                     else:
                         self.subsBg[substrate] = count
@@ -484,9 +484,6 @@ class WebApp:
                              filteredAA=False)
 
         return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
-
-
-
 
 
 
@@ -509,11 +506,11 @@ class WebApp:
                     getStr=True))
                 translate = False
 
+            # Translate the dna
             if translate:
-                # Translate the dna
                 substrates = self.translate(data, path, datasetType,
                                             queueLog, forwardRead)
-                queueData.put(substrates) # Put substrates in the queue
+                queueData.put(substrates) # Put the substrates in the queue
 
 
 
