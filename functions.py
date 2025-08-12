@@ -371,25 +371,28 @@ class WebApp:
         # Params: Tmp
         # Update when using files
 
-        # if type(file) == 'fastq':
-        #     useQS = True
-
+        # Placeholder for files
         self.fileExp = ['data/variantsExp.fastq', 'data/variantsExp2.fastq']
         self.fileBg = ['data/variantsBg.fasta', 'data/variantsBg2.fasta']
         self.fileBg = False
 
         # Load the data
-        queueExp = queue.Queue()
-        queueBg = queue.Queue()
         threads = []
-        logQueues = []
+
+        queueBg = queue.Queue()
+        queuesExp = []
+        queuesBg = []
+        queuesLog = []
+
         if self.fileExp:
             # self.loadDNA(path=self.fileExp,
             #              datasetType=self.datasetTypes['Exp'],
             #              forwardRead=True)
             for file in self.fileExp:
+                queueExp = queue.Queue()
                 queueLog = queue.Queue()
-                logQueues.append(queueLog)
+                queuesExp.append(queueExp)
+                queuesLog.append(queueLog)
                 thread = threading.Thread(
                     target=self.loadDNA,
                     args=(file, self.datasetTypes['Exp'], queueExp, queueLog, True,))
@@ -410,27 +413,26 @@ class WebApp:
         for thread in threads:
             thread.join()
 
-        if logQueues:
-            for queueLog in logQueues:
+        if queuesLog:
+            for queueLog in queuesLog:
                 self.logInQueue(queueLog)
 
         # Get results from queue
-        print(queueExp)
         if self.fileExp:
-            print('Start A')
-            resultsExp = queueExp.get()
-            print('Done A')
+            print(f'N Results: {len(queuesExp)}')
+            N = 1
+            for queueData in queuesExp:
+                print(f'Set: {N}')
+                N += 1
+                set = queueData.get()
+                for substrate, count in set.items():
+                    if substrate in self.subsExp.keys():
+                        self.subsExp[substrate] += count
+                    else:
+                        self.subsExp[substrate] = count
+
         if self.fileBg:
-            print('Start B')
             resultsBg = queueBg.get()
-            print('Done B')
-
-        print(f'\nResults:')
-        for x in resultsExp:
-            print(x)
-
-        print(f'\nResults: {resultsExp}\n\n')
-        print(f'\nResults: {resultsBg}\n\n')
 
 
         # Sort data
@@ -461,6 +463,8 @@ class WebApp:
 
 
     def loadDNA(self, path, datasetType, queueData, queueLog, forwardRead):
+        translate = True
+
         # Open the file
         openFn = gzip.open if path.endswith('.gz') else open # Define open function
         with openFn(path, 'rt') as file: # 'rt' = read text mode
@@ -475,11 +479,12 @@ class WebApp:
                     function='loadDNA()',
                     msg=f'Unrecognized file\n     {path}',
                     getStr=True))
-                return None
+                translate = False
 
-            # Translate the dna
-            substrates = self.translate(data, datasetType, queueLog, forwardRead)
-            queueData.put(substrates) # Put substrates in the queue
+            if translate:
+                # Translate the dna
+                substrates = self.translate(data, datasetType, queueLog, forwardRead)
+                queueData.put(substrates) # Put substrates in the queue
 
 
 
@@ -525,9 +530,7 @@ class WebApp:
 
 
         # Translate DNA - Sample Set
-        print(f'QS: {useQS}\n')
         if useQS:
-            print(f'Start: {type(data)}\n')
             for index, datapoint in enumerate(data):
                 if totalSubsExtracted >= self.printN: # Exit loop
                     break
@@ -608,6 +611,7 @@ class WebApp:
 
 
         # Translate DNA - Full Set
+        substrates = {}
         totalSeqsDNA = 0
         totalSubsExtracted = 0
         if useQS:
