@@ -186,7 +186,7 @@ p {
 
 /* Button */
 button {
-    background-color: var(--green);
+    background-color: var(--orangeBurnt);
     color: var(--black);
     font-size: var(--buttonFontSize);
     cursor: pointer;

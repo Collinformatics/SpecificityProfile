@@ -1,10 +1,16 @@
+import base64
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio import BiopythonWarning
 import gzip
+import io
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap, Normalize
+import numpy as np
 import os.path
 import pandas as pd
 import queue
+import seaborn as sns
 import sys
 import threading
 import warnings
@@ -100,6 +106,44 @@ class WebApp:
 
 
     @staticmethod
+    def createCustomColorMap(colorType):
+        colorType = colorType.lower()
+        if colorType == 'counts':
+            useGreen = True
+            if useGreen:
+                # Green
+                colors = ['#FFFFFF', '#ABFF9B', '#39FF14', '#2E9418', '#2E9418',
+                          '#005000']
+            else:
+                # Orange
+                colors = ['white', 'white', '#FF76FA', '#FF50F9', '#FF00F2',
+                          '#CA00DF', '#BD16FF']
+        elif colorType == 'stdev':
+            colors = ['white', 'white', '#FF76FA', '#FF50F9', '#FF00F2', '#CA00DF',
+                      '#BD16FF']
+        elif colorType == 'word cloud':
+            # ,'#F2A900','#2E8B57','black'
+            colors = ['#CC5500', '#CC5500', '#F79620', '#FAA338',
+                      '#00C01E', '#1D680D', '#003000', 'black']
+            # colors = ['#008631','#39E75F','#CC5500','#F79620','black']
+        elif colorType == 'em':
+            colors = ['navy', 'royalblue', 'dodgerblue', 'lightskyblue', 'white', 'white',
+                      'lightcoral', 'red', 'firebrick', 'darkred']
+        else:
+            print(f'ERROR: Cannot create colormap. '
+                  f'Unrecognized colorType parameter: {colorType}\n')
+            sys.exit(1)
+
+        # Create colormap
+        if len(colors) == 1:
+            colorList = [(0, colors[0]), (1, colors[0])]
+        else:
+            colorList = [(i / (len(colors) - 1), color) for i, color in enumerate(colors)]
+        return LinearSegmentedColormap.from_list('custom_colormap', colorList)
+
+
+
+    @staticmethod
     def residueColors():
         color = ['darkgreen', 'firebrick', 'deepskyblue', 'pink', 'navy', 'black', 'gold']
         # Aliphatic, Acidic, Basic, Hydroxyl, Amide, Aromatic, Sulfur
@@ -126,6 +170,21 @@ class WebApp:
             'Y': color[5],
             'V': color[0]
         }
+
+
+
+    @staticmethod
+    def encodeFig(fig):
+        # Save to a memory buffer instead of disk
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format='png', bbox_inches='tight')
+        buffer.seek(0)
+
+        # Encode as base64 for embedding in HTML
+        figBase64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+        return figBase64
+
 
 
     def pressButton(self, message):
@@ -442,6 +501,7 @@ class WebApp:
                 thread.start()
                 threads.append(thread)
 
+
         # Wait for all threads to finish
         for thread in threads:
             thread.join()
@@ -478,12 +538,88 @@ class WebApp:
                              datasetType=self.datasetTypes['Exp'],
                              filteredAA=False)
 
+            # Plot counts
+            self.plotCounts(countedData=self.countsExp, totalCounts=self.countExpTotal,
+                            datasetType=self.datasetTypes['Exp'])
+
         if self.subsBg:
             self.processSubs(substrates=self.subsBg,
                              datasetType=self.datasetTypes['Bg'],
                              filteredAA=False)
 
+            # Plot counts
+            self.plotCounts(countedData=self.countsBg, totalCounts=self.countBgTotal,
+                            datasetType=self.datasetTypes['Bg'])
+
         return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
+
+
+
+    def plotCounts(self, countedData, totalCounts, datasetType):
+        # Remove commas from string values and convert to float
+        countedData = countedData.applymap(lambda x:
+                                           float(x.replace(',', ''))
+                                           if isinstance(x, str) else x)
+        countedData.index = self.AA
+
+        # Create color map
+        cMapCustom = self.createCustomColorMap(colorType='Counts')
+
+        # Set figure title
+        title = f'\n\n{self.enzymeName}\n{datasetType}\nN={totalCounts:,}'
+
+
+        # Plot the heatmap with numbers centered inside the squares
+        fig, ax = plt.subplots(figsize=self.figSize)
+        heatmap = sns.heatmap(countedData, annot=True, fmt=',d', cmap=cMapCustom,
+                              cbar=True, linewidths=self.lineThickness-1,
+                              linecolor='black', square=False, center=None,
+                              annot_kws={'fontweight': 'bold'})
+        ax.set_xlabel('Substrate Position', fontsize=self.labelSizeAxis)
+        ax.set_ylabel('Residue', fontsize=self.labelSizeAxis)
+        ax.set_title(title, fontsize=self.labelSizeTitle, fontweight='bold')
+        figBorders = [0.852, 0.075, 0.117, 1]
+        plt.subplots_adjust(top=figBorders[0], bottom=figBorders[1],
+                            left=figBorders[2], right=figBorders[3])
+
+        # Set the thickness of the figure border
+        for _, spine in ax.spines.items():
+            spine.set_visible(True)
+            spine.set_linewidth(self.lineThickness)
+
+        # Set tick parameters
+        ax.tick_params(axis='both', which='major', length=self.tickLength,
+                       labelsize=self.labelSizeTicks, width=self.lineThickness)
+        ax.tick_params(axis='y', labelrotation=0)
+
+        # Set x-ticks
+        xTicks = np.arange(len(countedData.columns)) + 0.5
+        ax.set_xticks(xTicks)
+        ax.set_xticklabels(countedData.columns)
+
+        # Set y-ticks
+        yTicks = np.arange(len(countedData.index)) + 0.5
+        ax.set_yticks(yTicks)
+        ax.set_yticklabels(countedData.index)
+
+
+        for _, spine in ax.spines.items():
+            spine.set_visible(True)
+
+        # Modify the colorbar
+        cbar = heatmap.collections[0].colorbar
+        cbar.ax.tick_params(axis='y', which='major', labelsize=self.labelSizeTicks,
+                            length=self.tickLength, width=self.lineThickness)
+        cbar.outline.set_linewidth(self.lineThickness)
+        cbar.outline.set_edgecolor('black')
+        
+        # Encode the figure
+        figBase64 = self.encodeFig(fig)
+
+        # Close the figure to free memory
+        plt.close(fig) 
+        
+        return figBase64
 
 
 
@@ -491,8 +627,8 @@ class WebApp:
         translate = True
 
         # Open the file
-        openFn = gzip.open if path.endswith('.gz') else open # Define open function
-        with openFn(path, 'rt') as file: # 'rt' = read text mode
+        openFn = gzip.open if path.endswith('.gz') else open  # Define open function
+        with openFn(path, 'rt') as file:  # 'rt' = read text mode
             if '.fastq' in path or '.fq' in path:
                 data = SeqIO.parse(file, 'fastq')
                 warnings.simplefilter('ignore', BiopythonWarning)
