@@ -4,6 +4,7 @@ from Bio.Seq import Seq
 from Bio import BiopythonWarning
 import gzip
 import io
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 import numpy as np
@@ -14,6 +15,11 @@ import seaborn as sns
 import sys
 import threading
 import warnings
+
+
+
+# Generate figures entirely in memory without opening a window
+matplotlib.use('Agg')  # Use a non-interactive backend for servers
 
 
 
@@ -532,6 +538,7 @@ class WebApp:
                     else:
                         self.subsBg[substrate] = count
 
+
        # Sort substrates and count AA
         if self.subsExp:
             self.processSubs(substrates=self.subsExp,
@@ -556,6 +563,8 @@ class WebApp:
 
 
     def plotCounts(self, countedData, totalCounts, datasetType):
+        plt.figure = debug_figure
+
         # Remove commas from string values and convert to float
         countedData = countedData.applymap(lambda x:
                                            float(x.replace(',', ''))

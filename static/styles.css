@@ -199,7 +199,7 @@ button {
     padding: var(--padSize);
 }
 button:hover {
-    background-color: var(--greenDark);
+    background-color: var(--white);
 }
 .button-wrapper {
     display: flex;
@@ -389,7 +389,7 @@ input[type="url"] {
     filter: blur(8px);
     animation: glowing 20s linear infinite;
     transition: opacity .3s ease-in-out;
-    border-radius: var(--buttonRad);
+    border-radius: 0; var(--buttonRad);
     opacity: 0;
 }
 

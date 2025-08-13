@@ -183,13 +183,17 @@ function buttonProcessDNA() {
         body: formData  // Send the actual FormData object, not a JSON
     })
 
-    .then(response => response.json())
-    .then(data => {
-        console.log("Response from server:", data);
-        // You can now update the page dynamically with JS
+    .then(response => {
+        if (response.ok) {
+            // Go to the results page after successful processing
+            window.location.href = '/results';
+        } else {
+            alert("Error processing DNA.");
+        }
     })
     .catch(error => {
-        console.error("Error:", error);
+        console.error('Error:', error);
+        alert("An error occurred.");
     });
 }
 

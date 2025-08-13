@@ -39,6 +39,11 @@ def evalDNA():
     return jsonify({'status': 'ok'})
 
 
+@app.route('/results', methods=['GET'])
+def results():
+    return render_template('results.html')
+
+
 
 @app.route('/')
 def home():
