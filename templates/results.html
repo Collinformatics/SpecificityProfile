@@ -29,16 +29,16 @@
 
             <!-- Plot Figures -->
             <div class="box">
-                <h1>Results</h1>
-
                 {% if images.exp_counts %}
-                    <h2>Experimental Counts</h2>
-                    <img src="{{ url_for('getFigure', filename=images.exp_counts) }}" alt="Experimental Heatmap">
+                    <h1>Experimental Counts</h1>
+                    <img src="{{ url_for('getFigure', filename=images.exp_counts) }}"
+                         alt="Experimental Heatmap" class="figure-img">
                 {% endif %}
 
                 {% if images.bg_counts %}
-                    <h2>Background Counts</h2>
-                    <img src="{{ url_for('getFigure', filename=images.bg_counts) }}" alt="Background Heatmap">
+                    <h1>Background Counts</h1>
+                    <img src="{{ url_for('getFigure', filename=images.bg_counts) }}"
+                         alt="Background Heatmap" class="figure-img">
                 {% endif %}
             </div>
         </div>

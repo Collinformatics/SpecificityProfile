@@ -411,3 +411,9 @@ input[type="url"] {
 .btn:active {
     color: var(--black);
 }
+
+.figure-img {
+    max-width: 80vw;
+    width: 100%;
+    height: auto;
+}

@@ -9,21 +9,20 @@ seq3Prime = 'GGTGGAAGT' # 3' flanking sequence
 # Dataset parameters
 
 N=1 # Number of variants
-oddMutationExp = 0 # Percent chance of mutating a codon in experimental set
-oddMutationBg = 0
+oddMutationExp = 30 # Percent chance of mutating a codon in experimental set
+oddMutationBg = 90
 
 setInit = False
 if setInit:
     pathExp = "data/variantsExp.fastq"
     pathBg = "data/variantsBg.fasta"
 else:
-    seqDNA = 'GCTTTAATTCAAATTGATAATGCT'
+    seqDNA = 'CCTTATATTCAGATTGATAATGCG'
     pathExp = "data/variantsExp2.fastq"
     pathBg = "data/variantsBg2.fasta"
 
 
 def generateVariants(sequence, mutationOdds=4, numVariants=50):
-
     bases = ['A', 'T', 'C', 'G']
     variants = [('variant_0', f'{seq5Prime}{sequence}{seq3Prime}')]
 

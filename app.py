@@ -41,11 +41,6 @@ def evalDNA():
     data['fileBg'] = request.files.get('fileBg')
     session['figures'] = webapp.evalDNA(data)
 
-    print(f'Session: {type(session['figures'])}')
-    for x, y in session['figures'].items():
-        print(x, y)
-    print('')
-
     return redirect(url_for('results'))
 
 
@@ -53,11 +48,6 @@ def evalDNA():
 @app.route('/results')
 def results():
     figures = session.get('figures')
-
-    print('figs:')
-    for x, y in figures.items():
-        print(x, y)
-    print('')
 
     return render_template('results.html', images=figures)
 
