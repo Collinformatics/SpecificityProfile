@@ -1,4 +1,6 @@
 import base64
+from fileinput import filename
+
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio import BiopythonWarning
@@ -538,33 +540,35 @@ class WebApp:
                     else:
                         self.subsBg[substrate] = count
 
-
-       # Sort substrates and count AA
+        figures = {}
         if self.subsExp:
+            # Sort substrates and count AA
             self.processSubs(substrates=self.subsExp,
                              datasetType=self.datasetTypes['Exp'],
                              filteredAA=False)
 
             # Plot counts
-            self.plotCounts(countedData=self.countsExp, totalCounts=self.countExpTotal,
-                            datasetType=self.datasetTypes['Exp'])
-
+            figures['exp_counts'] = (
+                self.plotCounts(countedData=self.countsExp,
+                                totalCounts=self.countExpTotal,
+                                datasetType=self.datasetTypes['Exp']))
         if self.subsBg:
+            # Sort substrates and count AA
             self.processSubs(substrates=self.subsBg,
                              datasetType=self.datasetTypes['Bg'],
                              filteredAA=False)
 
             # Plot counts
-            self.plotCounts(countedData=self.countsBg, totalCounts=self.countBgTotal,
-                            datasetType=self.datasetTypes['Bg'])
+            figures['bg_counts'] = (
+                self.plotCounts(countedData=self.countsBg,
+                                totalCounts=self.countBgTotal,
+                                datasetType=self.datasetTypes['Bg']))
 
-        return {'seq': 'GTGGAACATACCGTGGCGCTGAAACAGAACCGC'}
+        return figures
 
 
 
     def plotCounts(self, countedData, totalCounts, datasetType):
-        plt.figure = debug_figure
-
         # Remove commas from string values and convert to float
         countedData = countedData.applymap(lambda x:
                                            float(x.replace(',', ''))
@@ -621,14 +625,21 @@ class WebApp:
                             length=self.tickLength, width=self.lineThickness)
         cbar.outline.set_linewidth(self.lineThickness)
         cbar.outline.set_edgecolor('black')
-        
+
+        # File path
+        figName = f'counts - {self.enzymeName} - {datasetType}.png'
+        path = os.path.join(self.pathFigs, figName)
+        print(f'Saving Fig: {datasetType}\n     {path}\n')
+
         # Encode the figure
         figBase64 = self.encodeFig(fig)
+        with open(path, "wb") as file:
+            file.write(base64.b64decode(figBase64))
 
         # Close the figure to free memory
         plt.close(fig) 
         
-        return figBase64
+        return figName
 
 
 

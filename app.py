@@ -1,12 +1,17 @@
-from flask import Flask, jsonify, render_template, request
+from flask import (Flask, jsonify, render_template, redirect,
+                   request, send_from_directory, session, url_for)
 from functions import WebApp
-import json
+
 
 
 app = Flask(__name__)
+app.secret_key = "super_secret_key"
 
 # Initialize: Application
 webapp = WebApp()
+
+# Figure storage
+figures = {}
 
 
 @app.route('/run', methods=['POST'])
@@ -22,10 +27,11 @@ def run():
     # enzymeName = request.form.get('enzymeName')
     # fileExp = request.files.get('fileExp')
 
+
+
 @app.route('/evalDNA', methods=['POST'])
 def evalDNA():
     data = {}
-
     data['enzymeName'] = request.form.get('enzymeName')
     data['seq5Prime'] = request.form.get('seq5Prime')
     data['seq3Prime'] = request.form.get('seq3Prime')
@@ -33,16 +39,32 @@ def evalDNA():
     data['minPhred'] = request.form.get('minPhred')
     data['fileExp'] = request.files.get('fileExp')
     data['fileBg'] = request.files.get('fileBg')
+    session['figures'] = webapp.evalDNA(data)
 
-    webapp.evalDNA(data)
+    print(f'Session: {type(session['figures'])}')
+    for x, y in session['figures'].items():
+        print(x, y)
+    print('')
 
-    return jsonify({'status': 'ok'})
+    return redirect(url_for('results'))
 
 
-@app.route('/results', methods=['GET'])
+
+@app.route('/results')
 def results():
-    return render_template('results.html')
+    figures = session.get('figures')
 
+    print('figs:')
+    for x, y in figures.items():
+        print(x, y)
+    print('')
+
+    return render_template('results.html', images=figures)
+
+
+@app.route('/data/figures/<filename>')
+def getFigure(filename):
+    return send_from_directory('data/figures', filename)
 
 
 @app.route('/')

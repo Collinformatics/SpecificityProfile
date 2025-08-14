@@ -27,14 +27,20 @@
             </p>
             <p></p>
 
-            <!-- Forms -->
-            <form id="dnaForm" enctype="multipart/form-data" class="input-form">
+            <!-- Plot Figures -->
+            <div class="box">
+                <h1>Results</h1>
 
-                <!-- Enzyme name -->
-                <div class="form-group">
-                    <label for="enzymeName">Enzyme Name:</label>
-                </div>
-            </form>
+                {% if images.exp_counts %}
+                    <h2>Experimental Counts</h2>
+                    <img src="{{ url_for('getFigure', filename=images.exp_counts) }}" alt="Experimental Heatmap">
+                {% endif %}
+
+                {% if images.bg_counts %}
+                    <h2>Background Counts</h2>
+                    <img src="{{ url_for('getFigure', filename=images.bg_counts) }}" alt="Background Heatmap">
+                {% endif %}
+            </div>
         </div>
     </body>
 </html>
