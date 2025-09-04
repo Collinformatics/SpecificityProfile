@@ -102,45 +102,6 @@ document.addEventListener('DOMContentLoaded', function() {
         event.target.value = ''; // Clear file input
     }
     });
-
-//    // Inspect File Upload:
-//    document.getElementById('').addEventListener('input', function() {
-//        const value = this.value;
-//        console.log('Input: ', value)
-//
-//        if (!isInteger && value !== '') {
-//            alert('Please enter a valid input.');
-//            this.value = ''; // Optionally clear the input
-//        }
-//    });
-//});
-
-
-//// Form: Process DNA
-//function buttonProcessDNA_UpdateWhenDoneBuilding() {
-//    const form = document.getElementById("dnaForm");
-//    const formData = new FormData(form); // This keeps files intact!
-//
-//    fetch('/evalDNA', {
-//        method: 'POST',
-//        body: formData // send as multipart/form-data
-//    })
-//    .then(response => response.json())
-//    .then(data => {
-//        console.log("Response from server:", data);
-//    })
-//    .catch(error => {
-//        console.error("Error:", error);
-//    });
-//
-//    // app.py
-//    @app.route('/evalDNA', methods=['POST'])
-//    def evalDNA():
-//        enzymeName = request.form.get('enzymeName')
-//        fileExp = request.files.get('fileExp')
-//        fileBg = request.files.get('fileBg')
-//        # other form fields the same way
-//
 });
 
 
@@ -153,10 +114,22 @@ function buttonProcessDNA() {
 
     // Process the input form
     for (const [key, value] of formData.entries()) {
-    if (key === 'filterPos') {
-        selectedFixPositions.push(value);  // e.g., ['R2']
+
+        if (key === 'filterPos') {
+            selectedFixPositions.push(value);  // e.g., ['R2']
         }
 
+        if (key.includes('file') && value.name) {
+            console.log('Key:', key)
+            console.log('Value:', value), '\n'
+            if (json[key]) {
+                if (!Array.isArray(json[key]))
+                    json[key] = [json[key]];
+                    json[key].push(value);
+            } else {
+                json[key] = value;
+            }
+        }
 
         if (json[key]) {
         // When you have more that one value or a key, put the values in a list
@@ -167,12 +140,12 @@ function buttonProcessDNA() {
         } else {
             json[key] = value;
         }
-        }
+    }
 
-        // Clean out fixR* keys not selected
-        Object.keys(json).forEach(key => {
-            if (key.startsWith('fix') && !selectedFixPositions.includes(key.replace('fix', ''))) {
-                delete json[key];
+    // Clean out fixR* keys not selected
+    Object.keys(json).forEach(key => {
+        if (key.startsWith('fix') && !selectedFixPositions.includes(key.replace('fix', ''))) {
+            delete json[key];
         }
     });
 
@@ -186,8 +159,9 @@ function buttonProcessDNA() {
     .then(response => {
         if (response.ok) {
             // Go to the results page after successful processing
-            window.location.href = '/results';
+            window.location.assign('/static/results.html')
         } else {
+            console.log('Error processing DNA.');
             alert("Error processing DNA.");
         }
     })

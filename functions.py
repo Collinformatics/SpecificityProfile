@@ -1,7 +1,4 @@
 import base64
-import time
-from fileinput import filename
-
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio import BiopythonWarning
@@ -17,6 +14,7 @@ import queue
 import seaborn as sns
 import sys
 import threading
+import time
 import warnings
 
 
@@ -127,6 +125,7 @@ class WebApp:
 
     @staticmethod
     def createCustomColorMap(colorType):
+        print('createCustomColorMap()')
         colorType = colorType.lower()
         if colorType == 'counts':
             useGreen = True
@@ -365,6 +364,7 @@ class WebApp:
                 log.write(f'{txt}\n')
 
 
+
     def logInQueue(self, logQueue):
         with open(self.pathLog, 'a') as log:
             while not logQueue.empty():
@@ -465,15 +465,35 @@ class WebApp:
 
 
     def evalDNA(self, form):
+        print('evalDNA()')
         self.log()  # Clear the log
 
+        # Combine normal form fields and files into one dict-like object
+        form = request.form.to_dict()
+
+        # Files go in request.files, not request.form
+        form['fileExp'] = request.files.get('fileExp')
+        form['fileBg'] = request.files.get('fileBg')
+
+        # Get: Files
+        self.fileExp = form['fileExp']
+        self.fileBg = form['fileBg']
+        print(f'File Exp: {type(self.fileExp)}\n'
+              f'{self.fileExp}\n\n')
+        print(f'File Bg: {type(self.fileBg)}\n'
+              f'{self.fileBg}\n\n')
+        if self.fileExp:
+            expPath = f"uploads/{self.fileExp.filename}"
+            self.fileExp.save(expPath)
+            self.fileExp = expPath  # now it's a string path
+        if self.fileBg:
+            bgPath = f"uploads/{self.fileBg.filename}"
+            self.fileBg.save(bgPath)
+            self.fileBg = bgPath
 
 
         # Process job parameters
-
         self.enzymeName = form['enzymeName']
-        self.fileExp = form['fileExp']
-        self.fileBg = form['fileBg']
         self.seq5Prime = form['seq5Prime']
         self.seq3Prime = form['seq3Prime']
         self.seqLength = int(form['seqLength'])
@@ -497,9 +517,9 @@ class WebApp:
         # Params: Tmp
         # Update when using files
 
-        # Placeholder for files
-        self.fileExp = ['data/variantsExp.fastq', 'data/variantsExp2.fastq']
-        self.fileBg = ['data/variantsBg.fasta', 'data/variantsBg2.fasta']
+        # # Placeholder for files
+        # self.fileExp = ['data/variantsExp.fastq', 'data/variantsExp2.fastq']
+        # self.fileBg = ['data/variantsBg.fasta', 'data/variantsBg2.fasta']
 
         # Load the data
         threads = []
@@ -590,6 +610,10 @@ class WebApp:
 
 
     def plotCounts(self, countedData, totalCounts, datasetType):
+        print(f'Script: {os.path.basename(__file__)}\n')
+        print(f"Script: {os.path.abspath(__file__)}\n")
+
+
         # Remove commas from string values and convert to float
         countedData = countedData.applymap(lambda x:
                                            float(x.replace(',', ''))

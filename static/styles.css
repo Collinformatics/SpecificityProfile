@@ -183,6 +183,22 @@ p {
     color: var(--orange);
 }
 
+/* Figures*/
+.figures-container {
+    background-color: var(--grey);
+    margin: 20px;
+    padding: var(--padSize);
+    display: flex;
+    flex-direction: column;
+    align-items: center;      /* Center vertically */
+    padding: var(--padSize);
+}
+.figure-img {
+    max-width: 80vw;
+    width: 100%;
+    height: auto;
+}
+
 
 /* Button */
 button {
@@ -410,10 +426,4 @@ input[type="url"] {
 
 .btn:active {
     color: var(--black);
-}
-
-.figure-img {
-    max-width: 80vw;
-    width: 100%;
-    height: auto;
 }

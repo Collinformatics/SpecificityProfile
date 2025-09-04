@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="static/styles.css">
+        <script src="static/app.js"></script>
+
+        <title>Enzyme Profiling</title>
+    </head>
+    <body>
+        <!-- Header -->
+        <div class="container-header">
+            <!-- Header Buttons -->
+            <div class="button-group">
+                <button class="buttonHeader" onclick="pageHome()">Home</button>
+                <button class="buttonHeader" onclick="pageProcessDNA()">Process DNA</button>
+                <button class="buttonHeader" onclick="pageFilterAA()">Filter AA</button>
+                <button class="buttonHeader" onclick="pageFilterMotif()">Filter Motif</button>
+            </div>
+        </div>
+
+
+        <!-- Application -->
+        <div class="box">
+            <h1>Results</h1>
+            <p>
+                Job Output
+            </p>
+            <p></p>
+
+            <!-- Container where JS will insert images -->
+            <div id="figures-container" class="figures-container">
+                <p>Figures are being generated...</p>
+            </div>
+
+            <script>
+            function pollFigures() {
+                const container = document.getElementById("figures-container");
+
+                const interval = setInterval(() => {
+                    // new Flask route returning JSON with filenames
+                    const csrfToken = "{{ csrf_token() }}"; // from Flask-WTF template
+                    fetch('/checkFigures', {
+                        method: 'GET',
+                        headers: {
+                            'X-CSRFToken': csrfToken
+                        },
+                        credentials: 'same-origin'
+                    });
+
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.exp_counts || data.bg_counts) {
+                            clearInterval(interval); // Stop polling
+                            container.innerHTML = ''; // Clear loading message
+
+                            if (data.exp_counts) {
+                                const img = document.createElement('img');
+                                img.src = `/data/figures/${data.exp_counts}`;
+                                img.style.maxWidth = '80vw';
+                                img.style.height = 'auto';
+                                container.appendChild(img);
+                            }
+
+                            if (data.bg_counts) {
+                                const img = document.createElement('img');
+                                img.src = `/data/figures/${data.bg_counts}`;
+                                img.style.maxWidth = '80vw';
+                                img.style.height = 'auto';
+                                container.appendChild(img);
+                            }
+                        }
+                    });
+                }, 1000); // poll every 1 second
+            }
+
+            // Start polling when page loads
+            document.addEventListener('DOMContentLoaded', pollFigures);
+            </script>
+
+<!--            &lt;!&ndash; Plot Figures &ndash;&gt;
+            <div class="figures-container">
+                {% if images.exp_counts %}
+                    <h1>Experimental Counts</h1>
+                    <img src="{{ url_for('getFigure', filename=images.exp_counts) }}"
+                         alt="Experimental Heatmap" class="figure-img">
+                {% endif %}
+
+                {% if images.bg_counts %}
+                    <h1>Background Counts</h1>
+                    <img src="{{ url_for('getFigure', filename=images.bg_counts) }}"
+                         alt="Background Heatmap" class="figure-img">
+                {% endif %}
+            </div>-->
+        </div>
+    </body>
+</html>
