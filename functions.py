@@ -125,7 +125,6 @@ class WebApp:
 
     @staticmethod
     def createCustomColorMap(colorType):
-        print('createCustomColorMap()')
         colorType = colorType.lower()
         if colorType == 'counts':
             useGreen = True
@@ -323,34 +322,22 @@ class WebApp:
     def getFilter(self, data):
         if 'filterPos' in data.keys():
             self.filterPos = data['filterPos']
-        self.fixAA = {}
-        self.exclAA = {}
+            self.fixAA = {}
+            self.exclAA = {}
 
-        # Fix AA
-        if any(key.startswith('fix') for key in form.keys()):
-            for key, value in form.items():
+            # Get filter params
+            print('Filter:')
+            for key, value in data.items():
                 if 'fix' in key:
                     self.fixAA[key] = value
-
-            self.fixAA = dict(sorted(self.fixAA.items()))
-            print(f'Fixing AA:')
-            for key, value in self.fixAA.items():
-                print(f'     {key}: {value}')
-            print()
-
-        # Exclude AA
-        if any(key.startswith('excl') for key in form.keys()):
-            for key, value in form.items():
-                if 'fix' in key:
+                    print(f'  {key}: {value}')
+                if 'excl' in key:
                     self.exclAA[key] = value
+                    print(f'  {key}: {value}')
 
+            # Sort filter params
+            self.fixAA = dict(sorted(self.fixAA.items()))
             self.exclAA = dict(sorted(self.exclAA.items()))
-            print(f'Excluding AA:')
-            for key, value in self.exclAA.items():
-                print(f'     {key}: {value}')
-            print()
-            print('\nStopping job at: getFilter()\n')
-            sys.exit()
 
         self.getDatasetTag()
 
