@@ -320,8 +320,9 @@ class WebApp:
 
 
 
-    def getFilter(self, form):
-        self.filterPos = form.get('filterPos', [])
+    def getFilter(self, data):
+        if 'filterPos' in data.keys():
+            self.filterPos = data['filterPos']
         self.fixAA = {}
         self.exclAA = {}
 
@@ -464,40 +465,34 @@ class WebApp:
 
 
 
-    def evalDNA(self, form):
-        print('evalDNA()')
+    def evalDNA(self, data):
         self.log()  # Clear the log
 
-        # Combine normal form fields and files into one dict-like object
-        form = request.form.to_dict()
+        # Get the files
+        for key, value in data.items():
+            if 'fileExp' in key:
+                self.fileExp.append(value)
+            elif 'fileBg' in key:
+                self.fileBg.append(value)
+            else:
+                print(key, value)
+        print()
 
-        # Files go in request.files, not request.form
-        form['fileExp'] = request.files.get('fileExp')
-        form['fileBg'] = request.files.get('fileBg')
-
-        # Get: Files
-        self.fileExp = form['fileExp']
-        self.fileBg = form['fileBg']
+        # # Placeholder for files
+        self.fileExp = ['data/variantsExp.fastq', 'data/variantsExp2.fastq']
+        self.fileBg = ['data/variantsBg.fasta', 'data/variantsBg2.fasta']
         print(f'File Exp: {type(self.fileExp)}\n'
-              f'{self.fileExp}\n\n')
+              f'{self.fileExp}\n')
         print(f'File Bg: {type(self.fileBg)}\n'
               f'{self.fileBg}\n\n')
-        if self.fileExp:
-            expPath = f"uploads/{self.fileExp.filename}"
-            self.fileExp.save(expPath)
-            self.fileExp = expPath  # now it's a string path
-        if self.fileBg:
-            bgPath = f"uploads/{self.fileBg.filename}"
-            self.fileBg.save(bgPath)
-            self.fileBg = bgPath
 
 
         # Process job parameters
-        self.enzymeName = form['enzymeName']
-        self.seq5Prime = form['seq5Prime']
-        self.seq3Prime = form['seq3Prime']
-        self.seqLength = int(form['seqLength'])
-        self.minPhred = int(form['minPhred']) if form['minPhred'] != '' else 0
+        self.enzymeName = data['enzymeName']
+        self.seq5Prime = data['seq5Prime']
+        self.seq3Prime = data['seq3Prime']
+        self.seqLength = int(data['seqLength'])
+        self.minPhred = int(data['minPhred']) if data['minPhred'] != '' else 0
 
 
         # Log job params
@@ -511,15 +506,9 @@ class WebApp:
 
         # Evaluate job params
         self.initDataStructures()
-        self.getFilter(form)
+        self.getFilter(data)
         self.log(f'Dataset Filter: {self.datasetTag}\n\n')
 
-        # Params: Tmp
-        # Update when using files
-
-        # # Placeholder for files
-        # self.fileExp = ['data/variantsExp.fastq', 'data/variantsExp2.fastq']
-        # self.fileBg = ['data/variantsBg.fasta', 'data/variantsBg2.fasta']
 
         # Load the data
         threads = []

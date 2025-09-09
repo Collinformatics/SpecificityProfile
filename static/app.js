@@ -107,28 +107,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Define button function
 function buttonProcessDNA() {
-    const form = document.getElementById("dnaForm");
+    // const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+    const form = document.getElementById("formDNA");
     const formData = new FormData(form);
     const json = {}; // Dont send files as a JSON
     const selectedFixPositions = [];
 
+
     // Process the input form
     for (const [key, value] of formData.entries()) {
-
         if (key === 'filterPos') {
             selectedFixPositions.push(value);  // e.g., ['R2']
-        }
-
-        if (key.includes('file') && value.name) {
-            console.log('Key:', key)
-            console.log('Value:', value), '\n'
-            if (json[key]) {
-                if (!Array.isArray(json[key]))
-                    json[key] = [json[key]];
-                    json[key].push(value);
-            } else {
-                json[key] = value;
-            }
         }
 
         if (json[key]) {
@@ -136,7 +125,9 @@ function buttonProcessDNA() {
             if (!Array.isArray(json[key])) {
                 json[key] = [json[key]]; // Convert to array
             }
-            json[key].push(value);  // Push another value into the list
+
+            // Push another value into the list
+            json[key].push(value);
         } else {
             json[key] = value;
         }
@@ -149,17 +140,26 @@ function buttonProcessDNA() {
         }
     });
 
+    // Log the form
+    console.log('Form:');
+    for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+    }
 
+    // Log the form
     console.log('Input Form:', json);
-        fetch('/evalDNA', {
+
+
+    // POST the raw FormData to Flask
+    fetch('/evalFormDNA', {
         method: 'POST',
+        // headers: { 'X-CSRFToken': csrfToken },
         body: formData  // Send the actual FormData object, not a JSON
     })
-
     .then(response => {
         if (response.ok) {
             // Go to the results page after successful processing
-            window.location.assign('/static/results.html')
+            window.location.assign('/templates/results.html')
         } else {
             console.log('Error processing DNA.');
             alert("Error processing DNA.");

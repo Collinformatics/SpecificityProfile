@@ -41,7 +41,7 @@
             <p></p>
 
             <!-- Forms -->
-            <form id="dnaForm" enctype="multipart/form-data" class="input-form">
+            <form id="formDNA" enctype="multipart/form-data" class="input-form" method="post">
 
                 <!-- Enzyme name -->
                 <div class="form-group">
@@ -54,41 +54,43 @@
 
                 <!-- Experimental data -->
                 <div class="form-group">
-                    <label for="sequenceFile">Experimental Data:</label>
+                    <label>Experimental Data:</label>
                     <div class="form-wrapper">
                         <label class="label-sub" for="fileExp">Forward Read:</label>
                         <input type="file" id="fileExp" name="fileExp"
                                accept=".fasta,.fa,.fasta.gz,.fa.gz,.fastq,.fq,.gz"
-                               required>
+                               value="data/variantsExp.fastq"
+                               multiple>
                     </div>
                     <div class="form-wrapper">
                         <label class="label-sub" for="fileExpRev">Reverse Read:</label>
                         <input type="file" id="fileExpRev" name="fileExpRev"
                                accept=".fasta,.fa,.fasta.gz,.fa.gz,.fastq,.fq,.gz"
-                               required>
+                               multiple>
                     </div>
                 </div>
 
                 <!-- Background data -->
                 <div class="form-group">
-                    <label for="sequenceFile">Background Data:</label>
+                    <label>Background Data:</label>
                     <div class="form-wrapper">
                         <label class="label-sub" for="fileBg">Forward Read:</label>
                         <input type="file" id="fileBg" name="fileBg"
                                accept=".fasta,.fa,.fasta.gz,.fa.gz,.fastq,.fq,.gz"
-                               required multiple>
+                               value="data/variantsBg.fastq"
+                               multiple>
                     </div>
                     <div class="form-wrapper">
                         <label class="label-sub" for="fileBgRev">Reverse Read:</label>
                         <input type="file" id="fileBgRev" name="fileBgRev"
                                accept=".fasta,.fa,.fasta.gz,.fa.gz,.fastq,.fq,.gz"
-                               required multiple>
+                               multiple>
                     </div>
                 </div>
 
                 <!-- Flanking sequence -->
                 <div class="form-group">
-                    <label for="flank5">Flanking Sequences:</label>
+                    <label>Flanking Sequences:</label>
                     <div class="form-wrapper">
                         <label class="label-sub" for="seq5Prime">5':</label>
                         <input type="text" id="seq5Prime"

@@ -1,8 +1,8 @@
-import sys
-
 from flask import (Flask, jsonify, render_template, request,
                    send_from_directory, session)
 from functions import WebApp
+import sys
+
 
 
 app = Flask(__name__)
@@ -15,9 +15,22 @@ webapp = WebApp()
 figures = {}
 
 
-from flask_wtf.csrf import CSRFProtect, CSRFError
+# from flask_wtf.csrf import CSRFProtect, CSRFError
+# csrf = CSRFProtect(app)
 
-csrf = CSRFProtect(app)
+
+def parseForm():
+    # Parse the form
+    data = {}
+    for key, value in request.form.items():
+        data[key] = value
+
+    for key, value in request.files.items():
+        if value:
+            data[key] = value
+
+    return data
+
 
 
 @app.route('/run', methods=['POST'])
@@ -35,25 +48,15 @@ def run():
 
 
 
-@app.route('/evalDNA', methods=['POST'])
+@app.route('/evalFormDNA', methods=['POST'])
 def evalDNA():
-    print('Form')
-    data = {}
-    data['enzymeName'] = request.form.get('enzymeName')
-    data['seq5Prime'] = request.form.get('seq5Prime')
-    data['seq3Prime'] = request.form.get('seq3Prime')
-    data['seqLength'] = request.form.get('seqLength')
-    data['minPhred'] = request.form.get('minPhred')
+    # Parse the form
+    data = parseForm()
 
-    data['fileExp'] = request.files.get('fileExp')
-    data['fileExpRev'] = request.files.get('fileExpRev')  # add this
-    data['fileBg'] = request.files.get('fileBg')
-    data['fileBgRev'] = request.files.get('fileBgRev')  # add this
+    # Process the data
+    webapp.evalDNA(data)
 
-    session['figures'] = webapp.evalDNA(data)
-
-    # Return JSON directly instead of redirecting
-    return jsonify(figures)
+    return render_template('results.html')
 
 
 @app.route('/data/figures/<filename>')
@@ -62,7 +65,6 @@ def getFigure(filename):
 
 
 @app.route('/checkFigures')
-@csrf.exempt
 def checkFigures():
     figures = session.get('figures', {})
     return jsonify(figures)
@@ -87,5 +89,6 @@ def filterMotif():
     return render_template('filterMotif.html')
 
 
+# Run the app
 if __name__ == '__main__':
     app.run(debug=True)
