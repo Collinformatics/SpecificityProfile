@@ -1,14 +1,16 @@
 from flask import (Flask, jsonify, render_template, request,
                    send_from_directory, session)
+from flask_wtf.csrf import CSRFProtect, CSRFError, generate_csrf
 from functions import WebApp
-import secrets
+from getKey import genKey
 import sys
 
 
-
+# Set up the app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = secrets.token_hex(nbytes=32) # required for CSRF
-print(f'Key: {app.config['SECRET_KEY']}\nLen: {len(app.config['SECRET_KEY'])}\n')
+genKey(app)
+csrf = CSRFProtect(app)
+
 
 # Initialize: Application
 webapp = WebApp()
@@ -17,8 +19,7 @@ webapp = WebApp()
 figures = {}
 
 
-from flask_wtf.csrf import CSRFProtect, CSRFError, generate_csrf
-csrf = CSRFProtect(app)
+
 @app.route("/getToken")
 def getToken():
     token = generate_csrf()
@@ -38,7 +39,6 @@ def parseForm():
             data[key] = value
 
     return data
-
 
 
 
@@ -68,9 +68,11 @@ def evalDNA():
     return render_template('results.html')
 
 
+
 @app.route('/data/figures/<filename>')
 def getFigure(filename):
     return send_from_directory('data/figures', filename)
+
 
 
 @app.route('/checkFigures')
@@ -79,10 +81,14 @@ def checkFigures():
     return jsonify(figures)
 
 
+
 @app.route('/')
 def home():
     # return render_template('home.html')
-    return render_template('processDNA.html')
+    token = generate_csrf()
+    print(f"CSRF Token: {token}")
+    return render_template('processDNA.html', csrf_token=token)
+
 
 
 @app.route('/processDNA')
@@ -100,4 +106,5 @@ def filterMotif():
 
 # Run the app
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
+

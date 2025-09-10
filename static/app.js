@@ -109,7 +109,9 @@ document.addEventListener('DOMContentLoaded', function() {
 function buttonProcessDNA() {
     // const csrfToken = document.querySelector('input[name="csrf_token"]').value;
     const form = document.getElementById("formDNA");
+    const csrfToken = form.querySelector('input[name="csrf_token"]').value;
     const formData = new FormData(form);
+    formData.delete('csrf_token');
     const json = {}; // Dont send files as a JSON
     const selectedFixPositions = [];
 
@@ -153,7 +155,7 @@ function buttonProcessDNA() {
     // POST the raw FormData to Flask
     fetch('/evalFormDNA', {
         method: 'POST',
-        // headers: { 'X-CSRFToken': csrfToken },
+        headers: { 'X-CSRFToken': csrfToken },
         body: formData  // Send the actual FormData object, not a JSON
     })
     .then(response => {
