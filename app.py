@@ -1,12 +1,14 @@
 from flask import (Flask, jsonify, render_template, request,
                    send_from_directory, session)
 from functions import WebApp
+import secrets
 import sys
 
 
 
 app = Flask(__name__)
-app.secret_key = "super_secret_key"
+app.config['SECRET_KEY'] = secrets.token_hex(nbytes=32) # required for CSRF
+print(f'Key: {app.config['SECRET_KEY']}\nLen: {len(app.config['SECRET_KEY'])}\n')
 
 # Initialize: Application
 webapp = WebApp()
@@ -15,8 +17,14 @@ webapp = WebApp()
 figures = {}
 
 
-# from flask_wtf.csrf import CSRFProtect, CSRFError
-# csrf = CSRFProtect(app)
+from flask_wtf.csrf import CSRFProtect, CSRFError, generate_csrf
+csrf = CSRFProtect(app)
+@app.route("/getToken")
+def getToken():
+    token = generate_csrf()
+    print(f"CSRF Token: {token}")  # will print in server logs
+    return f"Token: {token}"
+
 
 
 def parseForm():
@@ -30,6 +38,7 @@ def parseForm():
             data[key] = value
 
     return data
+
 
 
 
