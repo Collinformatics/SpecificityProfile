@@ -3,6 +3,7 @@
     <head>
         <link rel="stylesheet" href="static/styles.css">
         <script src="static/app.js"></script>
+        <script src="{{ url_for('static', filename='app.js') }}"></script>
 
         <title>Enzyme Profiling</title>
     </head>
@@ -35,7 +36,6 @@
             </div>
 
 
-            <script src="{{ url_for('static', filename='app.js') }}"></script>
             <script>
                 document.addEventListener('DOMContentLoaded', getFigures);
             </script>
