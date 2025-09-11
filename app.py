@@ -20,14 +20,6 @@ figures = {}
 
 
 
-@app.route("/getToken")
-def getToken():
-    token = generate_csrf()
-    print(f"CSRF Token: {token}")  # will print in server logs
-    return f"Token: {token}"
-
-
-
 def parseForm():
     # Parse the form
     data = {}
@@ -77,8 +69,16 @@ def getFigure(filename):
 
 @app.route('/checkFigures')
 def checkFigures():
-    figures = session.get('figures', {})
+    # figures = session.get('figures', {})
+    figures = webapp.figures
     return jsonify(figures)
+
+
+
+@app.route('/results')
+def results():
+    return render_template('results.html',
+                           figures=webapp.figures)
 
 
 

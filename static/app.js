@@ -161,7 +161,7 @@ function buttonProcessDNA() {
     .then(response => {
         if (response.ok) {
             // Go to the results page after successful processing
-            window.location.assign('/templates/results.html')
+            window.location.assign('/results')
         } else {
             console.log('Error processing DNA.');
             alert("Error processing DNA.");
@@ -213,4 +213,45 @@ function clickButton() {
     .catch(error => {
         console.error('ERROR: ', error);
     });
+}
+
+
+// Get figures
+function getFigures() {
+    const container = document.getElementById("figures-container");
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+
+    const interval = setInterval(() => {
+        // new Flask route returning JSON with filenames
+        fetch('/checkFigures', {
+            method: 'GET',
+            headers: { 'X-CSRFToken': csrfToken },
+            credentials: 'same-origin'
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exp_counts || data.bg_counts) {
+                clearInterval(interval); // Stop polling
+                container.innerHTML = ''; // Clear loading message
+
+
+                if (data.exp_counts) {
+                    const img = document.createElement('img');
+                    img.src = `/data/figures/${data.exp_counts}`;
+                    img.style.maxWidth = '80vw';
+                    img.style.height = 'auto';
+                    container.appendChild(img);
+                }
+
+                if (data.bg_counts) {
+                    const img = document.createElement('img');
+                    img.src = `/data/figures/${data.bg_counts}`;
+                    img.style.maxWidth = '80vw';
+                    img.style.height = 'auto';
+                    container.appendChild(img);
+                }
+            }
+        });
+    }, 1000); // poll every 1 second
 }

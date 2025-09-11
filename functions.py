@@ -49,6 +49,7 @@ class WebApp:
                              'Bg': 'Background'}
 
         # Params: Files
+        self.figures = {}
         self.queueLog = queue.Queue()
         self.fileExp = []
         self.seqExp = None
@@ -558,7 +559,8 @@ class WebApp:
                     else:
                         self.subsBg[substrate] = count
 
-        figures = {}
+        # Make figures
+        self.figures = {'exp_counts': False, 'bg_counts': False}
         if self.subsExp:
             # Sort substrates and count AA
             self.processSubs(substrates=self.subsExp,
@@ -566,7 +568,7 @@ class WebApp:
                              filteredAA=False)
 
             # Plot counts
-            figures['exp_counts'] = (
+            self.figures['exp_counts'] = (
                 self.plotCounts(countedData=self.countsExp,
                                 totalCounts=self.countExpTotal,
                                 datasetType=self.datasetTypes['Exp']))
@@ -577,12 +579,10 @@ class WebApp:
                              filteredAA=False)
 
             # Plot counts
-            figures['bg_counts'] = (
+            self.figures['bg_counts'] = (
                 self.plotCounts(countedData=self.countsBg,
                                 totalCounts=self.countBgTotal,
                                 datasetType=self.datasetTypes['Bg']))
-
-        return figures
 
 
 
