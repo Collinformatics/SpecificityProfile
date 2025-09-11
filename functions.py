@@ -10,6 +10,7 @@ from matplotlib.colors import LinearSegmentedColormap, Normalize
 import numpy as np
 import os.path
 import pandas as pd
+import pickle as pk
 import queue
 import seaborn as sns
 import sys
@@ -882,7 +883,7 @@ class WebApp:
 
 
     def saveSubstrates(self, substrates, datasetType, filteredAA):
-        path = None
+        saveTag = None
         if filteredAA:
             if self.datasetTag is None:
                 print(f'Dont save, dataset tag: {self.datasetTag}\n')
@@ -890,22 +891,26 @@ class WebApp:
 
             print(f'Saving Substrates: {datasetType}\n')
             if datasetType == self.datasetTypes['Exp']:
-                path = self.saveTagExp['subs']
+                saveTag = self.saveTagExp['subs']
             elif datasetType == self.datasetTypes['Bg']:
-                path = self.saveTagBg['subs']
+                saveTag = self.saveTagBg['subs']
             else:
                 self.logErrorFn(function='saveSubstrates()',
                                 msg=f'Unknown dataset type: {datasetType}')
         else:
             if datasetType == self.datasetTypes['Exp']:
-                path = self.saveTagExp['subsRaw']
+                saveTag = self.saveTagExp['subsRaw']
             elif datasetType == self.datasetTypes['Bg']:
-                path = self.saveTagBg['subsRaw']
+                saveTag = self.saveTagBg['subsRaw']
             else:
                 self.logErrorFn(function='saveSubstrates()',
                                 msg=f'Unknown dataset type: {datasetType}')
 
+        # Save the substrates
+        path = os.path.join(self.pathSeqs, saveTag)
         self.log(f'Saving Substrates: {datasetType}\n     {path}\n\n')
+        with open(path, 'wb') as file:
+            pk.dump(substrates, file)
 
 
 
