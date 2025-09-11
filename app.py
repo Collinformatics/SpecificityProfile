@@ -56,8 +56,12 @@ def evalDNA():
 
     # Process the data
     webapp.evalDNA(data)
+    parameters = webapp.jobParams
+    for key, value in parameters.items():
+        print(f'{key}: {value}')
+    print()
 
-    return render_template('results.html')
+    return render_template('results.html', parameters=parameters)
 
 
 
@@ -77,8 +81,10 @@ def checkFigures():
 
 @app.route('/results')
 def results():
+
     return render_template('results.html',
-                           figures=webapp.figures)
+                           figures=webapp.figures,
+                           parameters=webapp.jobParams)
 
 
 
@@ -86,7 +92,6 @@ def results():
 def home():
     # return render_template('home.html')
     token = generate_csrf()
-    print(f"CSRF Token: {token}")
     return render_template('processDNA.html', csrf_token=token)
 
 

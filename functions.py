@@ -28,6 +28,7 @@ matplotlib.use('Agg')  # Use a non-interactive backend for servers
 class WebApp:
     def __init__(self):
         # Params: Dataset
+        self.jobParams = {}
         self.enzymeName = ''
         self.seqLength = False
         self.minCounts = 1
@@ -71,7 +72,7 @@ class WebApp:
         self.exclAA = {}
 
         # Params: Figures
-        self.datasetTag = None
+        self.datasetTag = 'Unfiltered'
         self.datasetTagMotif = None
         self.title = ''
         self.titleCombined = ''
@@ -216,15 +217,12 @@ class WebApp:
     def filterAA(self, form):
         self.log()  # Clear the log
 
-        # Process job parameters
-        self.enzymeName = form['enzymeName']
-        self.seqLength = int(form['seqLength'])
-        print('Processing Substrates')
-
         # Evaluate job params
         self.getFilter(form)
-        
+
+
         return {'AA': 'VEHTVALKQNR'}
+
 
 
     def filterMotif(self, form):
@@ -308,6 +306,12 @@ class WebApp:
 
         self.saveTagFig = (f'{self.enzymeName} - Fig - {self.datasetTag} - '
                            f'Min Counts {self.minCounts} - {self.seqLength} AA')
+
+        # Record job params
+        self.jobParams['Enzyme Name'] = self.enzymeName
+        self.jobParams['Substrate Length'] = self.seqLength
+        self.jobParams['Dataset Tag'] = self.datasetTag
+
 
 
 
@@ -399,6 +403,10 @@ class WebApp:
             self.countExpUnique = len(substrates.keys())
             self.log(f'     Total Substrates: {self.countExpTotal:,}\n'
                      f'    Unique Substrates: {self.countExpUnique:,}\n')
+
+            # Record job params
+            self.jobParams['Total Experimental Substrates'] = f'{self.countExpTotal:,}'
+            self.jobParams['Unique Experimental Substrates'] = f'{self.countExpUnique:,}'
         elif datasetType == self.datasetTypes['Bg']:
             self.subsBg = substrates
             countMatrix = self.countsBg
@@ -406,6 +414,10 @@ class WebApp:
             self.countBgUnique = len(substrates.keys())
             self.log(f'     Total Substrates: {self.countBgTotal:,}\n'
                      f'    Unique Substrates: {self.countBgUnique:,}\n')
+
+            # Record job params
+            self.jobParams['Total Background Substrates'] = f'{self.countBgTotal:,}'
+            self.jobParams['Unique Background Substrates'] = f'{self.countBgUnique:,}'
         else:
             self.logErrorFn(function='sampleSize()',
                             msg=f'Unknown dataset type: {datasetType}')

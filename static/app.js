@@ -237,20 +237,81 @@ function getFigures() {
 
 
                 if (data.exp_counts) {
+                    // Figure label
+                    const label = document.createElement('p');
+
+                    label.className = 'p2';
+                    label.textContent = "Experimental Counts";
+                    container.appendChild(label);
+
+                    // Add figure
                     const img = document.createElement('img');
                     img.src = `/data/figures/${data.exp_counts}`;
                     img.style.maxWidth = '80vw';
                     img.style.height = 'auto';
                     container.appendChild(img);
+                    container.appendChild(document.createElement('br'));
+                    container.appendChild(document.createElement('br'));
                 }
 
                 if (data.bg_counts) {
+                    // Figure label
+                    const label = document.createElement('p');
+                    label.className = 'p2';
+                    label.textContent = "Background Counts";
+                    container.appendChild(label);
+
+                    // Add figure
                     const img = document.createElement('img');
                     img.src = `/data/figures/${data.bg_counts}`;
                     img.style.maxWidth = '80vw';
                     img.style.height = 'auto';
                     container.appendChild(img);
+                    container.appendChild(document.createElement('br'));
+                    container.appendChild(document.createElement('br'));
                 }
+           }
+
+            if (data.eMap) {
+                clearInterval(interval); // Stop polling
+                container.innerHTML = ''; // Clear loading message
+
+                // Figure label
+                const label = document.createElement('p');
+
+                label.className = 'p2';
+                label.textContent = "Enrichment Map";
+                container.appendChild(label);
+
+                // Add figure
+                const img = document.createElement('img');
+                img.src = `/data/figures/${data.exp_counts}`;
+                img.style.maxWidth = '80vw';
+                img.style.height = 'auto';
+                container.appendChild(img);
+                container.appendChild(document.createElement('br'));
+                container.appendChild(document.createElement('br'));
+            }
+
+            if (data.eLogo) {
+                clearInterval(interval); // Stop polling
+                container.innerHTML = ''; // Clear loading message
+
+                // Figure label
+                const label = document.createElement('p');
+
+                label.className = 'p2';
+                label.textContent = "Enrichment Logo";
+                container.appendChild(label);
+
+                // Add figure
+                const img = document.createElement('img');
+                img.src = `/data/figures/${data.exp_counts}`;
+                img.style.maxWidth = '80vw';
+                img.style.height = 'auto';
+                container.appendChild(img);
+                container.appendChild(document.createElement('br'));
+                container.appendChild(document.createElement('br'));
             }
         });
     }, 1000); // poll every 1 second

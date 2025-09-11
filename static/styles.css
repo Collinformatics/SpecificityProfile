@@ -56,6 +56,26 @@ p {
     padding: var(--padSize);
 }
 
+.p2 {
+    color: var(--orange);
+    font-size: calc(var(--textSize) + 4px);
+    text-align: left;
+    margin: 0px;
+}
+
+/* Job Parameters */
+.p3 {
+    color: var(--white);
+    text-align: left;
+    margin: 0 0 0 0; /* optional to remove default padding */
+    padding-left: 30px;
+    list-style-position: inside;
+}
+.param-value {
+    color: var(--orangeBurnt);  /* Orange color */
+    font-weight: bold; /* Optional */
+}
+
 /* Labels */
 .pL {
     color: var(--orange);
@@ -86,6 +106,7 @@ p {
 }
 
 
+
 /* Header */
 .container-header {
     background-color: var(--grey);
@@ -99,7 +120,7 @@ p {
 }
 .buttonHeader {
     background-color: var(--grey);
-    color: var(--white);
+    color: var(--orange);
     flex: none; /* makes buttons line up horizontally */
     height: var(--headerHeight);
     width: auto; /* Dynamically adjust the width of the button */
@@ -112,7 +133,7 @@ p {
 }
 .buttonHeader:hover {
     background-color: var(--grey);
-    color: var(--orange);
+    color: var(--white);
 }
 .button-group {
     display: flex;
