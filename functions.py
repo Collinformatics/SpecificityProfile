@@ -214,28 +214,21 @@ class WebApp:
         return {'key': 'Returned data'}
 
 
-    def filterAA(self, form):
+    def filterAA(self):
         self.log()  # Clear the log
 
-        # Evaluate job params
-        self.getFilter(form)
-
+        print(f'Code: filterAA()')
+        sys.exit()
 
         return {'AA': 'VEHTVALKQNR'}
 
 
 
-    def filterMotif(self, form):
+    def filterMotif(self):
         self.log()  # Clear the log
 
-        # Process job parameters
-        self.enzymeName = form['enzymeName']
-        self.seqLength = int(form['seqLength'])
-        print('Filtering Substrates')
-        self.fixMotif = True
-
-        # Evaluate job params
-        self.getFilter(form)
+        print(f'Code: filterAA()')
+        sys.exit()
 
         return {'Motif': 'TVALK'}
 
@@ -275,6 +268,7 @@ class WebApp:
                     tagFix += tag
                 print(f'Tag: {tagFix}')
             self.datasetTag = tagFix
+        self.jobParams['Dataset Tag'] = self.datasetTag
 
 
         # Initialize: Save tags
@@ -303,15 +297,8 @@ class WebApp:
                 self.saveTagExp[tag] = (path.replace(f'{self.enzymeName}',
                                                      f'{self.enzymeName} - Motif'))
 
-
         self.saveTagFig = (f'{self.enzymeName} - Fig - {self.datasetTag} - '
                            f'Min Counts {self.minCounts} - {self.seqLength} AA')
-
-        # Record job params
-        self.jobParams['Enzyme Name'] = self.enzymeName
-        self.jobParams['Substrate Length'] = self.seqLength
-        self.jobParams['Dataset Tag'] = self.datasetTag
-
 
 
 
@@ -465,12 +452,14 @@ class WebApp:
             sys.exit(1)
 
 
+    def jobID(self, form, evalDNA=False, fixAA=False, fixMotif=False):
+        # Record job params
+        self.jobParams['Enzyme Name'] = self.enzymeName
+        self.jobParams['Substrate Length'] = self.seqLength
 
-    def evalDNA(self, data):
-        self.log()  # Clear the log
 
         # Get the files
-        for key, value in data.items():
+        for key, value in form.items():
             if 'fileExp' in key:
                 self.fileExp.append(value)
             elif 'fileBg' in key:
@@ -488,13 +477,35 @@ class WebApp:
               f'{self.fileBg}\n\n')
 
 
-        # Process job parameters
-        self.enzymeName = data['enzymeName']
-        self.seq5Prime = data['seq5Prime']
-        self.seq3Prime = data['seq3Prime']
-        self.seqLength = int(data['seqLength'])
-        self.minPhred = int(data['minPhred']) if data['minPhred'] != '' else 0
 
+        if evalDNA:
+            print('DNA')
+
+            # Process job parameters
+            self.enzymeName = form['enzymeName']
+            self.seq5Prime = form['seq5Prime']
+            self.seq3Prime = form['seq3Prime']
+            self.seqLength = int(form['seqLength'])
+            self.minPhred = int(form['minPhred']) if form['minPhred'] != '' else 0
+            self.getFilter(form)
+            self.log(f'Dataset Filter: {self.datasetTag}\n\n')
+
+
+
+        elif fixAA:
+            print('Fix AA')
+        elif fixMotif:
+            print('Fix Motif')
+        else:
+            print('ERROR: What Script Is Running')
+            sys.exit()
+        sys.exit()
+
+
+
+
+    def evalDNA(self):
+        self.log()  # Clear the log
 
         # Log job params
         self.log(f'================================== Process DNA '
@@ -507,9 +518,6 @@ class WebApp:
 
         # Evaluate job params
         self.initDataStructures()
-        self.getFilter(data)
-        self.log(f'Dataset Filter: {self.datasetTag}\n\n')
-
 
         # Load the data
         threads = []

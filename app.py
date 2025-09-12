@@ -48,14 +48,20 @@ def run():
     # fileExp = request.files.get('fileExp')
 
 
+def jobID(form, analysis):
+    webapp.jobID(form, analysis)
+
 
 @app.route('/evalFormDNA', methods=['POST'])
 def evalDNA():
     # Parse the form
-    data = parseForm()
+    form = parseForm()
+
+    # Evaluate job request
+    jobID(form, 'evalDNA')
 
     # Process the data
-    webapp.evalDNA(data)
+    webapp.evalDNA()
     parameters = webapp.jobParams
     for key, value in parameters.items():
         print(f'{key}: {value}')
