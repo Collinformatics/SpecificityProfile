@@ -1,9 +1,10 @@
-from flask import (Flask, jsonify, render_template, request,
-                   send_from_directory, session)
+from flask import (Flask, jsonify, redirect, render_template, request,
+                   send_from_directory, url_for)
 from flask_wtf.csrf import CSRFProtect, CSRFError, generate_csrf
 from functions import WebApp
 from getKey import genKey
 import sys
+import threading
 
 
 # Set up the app
@@ -44,30 +45,49 @@ def run():
 
     return jsonify(data)
 
-    # enzymeName = request.form.get('enzymeName')
-    # fileExp = request.files.get('fileExp')
 
 
 def jobID(form, analysis):
     webapp.jobID(form, analysis)
+    print('Redirect')
+    return redirect(url_for('jobSummary'))
+
+
+
+@app.route('/jobSummary')
+def jobSummary():
+    print('Job Summary')
+    return render_template('results.html',
+                           parameters=webapp.jobParams())
+
 
 
 @app.route('/evalFormDNA', methods=['POST'])
 def evalDNA():
     # Parse the form
     form = parseForm()
-
     # Evaluate job request
     jobID(form, 'evalDNA')
 
     # Process the data
     webapp.evalDNA()
-    parameters = webapp.jobParams
-    for key, value in parameters.items():
-        print(f'{key}: {value}')
-    print()
+    print('Done')
 
-    return render_template('results.html', parameters=parameters)
+    return render_template('results.html',
+                           parameters=webapp.jobParams)
+
+
+
+# @app.route('/evalFormDNA', methods=['POST'])
+# def evalDNA():
+#     # Parse the form
+#     form = parseForm()
+#
+#     # Kick off background job
+#     threading.Thread(target=webapp.evalDNA, args=(form,)).start()
+#
+#     # Immediately return "job started" page
+#     return render_template('results.html', parameters=webapp.jobParams)
 
 
 

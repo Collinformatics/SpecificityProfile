@@ -269,6 +269,7 @@ class WebApp:
                 print(f'Tag: {tagFix}')
             self.datasetTag = tagFix
         self.jobParams['Dataset Tag'] = self.datasetTag
+        self.log(f'Dataset Filter: {self.datasetTag}\n\n')
 
 
         # Initialize: Save tags
@@ -453,19 +454,27 @@ class WebApp:
 
 
     def jobID(self, form, evalDNA=False, fixAA=False, fixMotif=False):
-        # Record job params
-        self.jobParams['Enzyme Name'] = self.enzymeName
-        self.jobParams['Substrate Length'] = self.seqLength
+        self.log()  # Clear the log
+        self.log('================================== Job Summary '
+                 '==================================')
 
+        # Record job params
+        self.enzymeName = form['enzymeName']
+        self.jobParams['Enzyme Name'] = self.enzymeName
+        self.log(f'Enzyme: {self.enzymeName}')
+        self.seqLength = int(form['seqLength'])
+        self.jobParams['Substrate Length'] = self.seqLength
+        self.log(f'Substrate Length: {self.seqLength}')
 
         # Get the files
+        print('Job Parameters:')
         for key, value in form.items():
             if 'fileExp' in key:
                 self.fileExp.append(value)
             elif 'fileBg' in key:
                 self.fileBg.append(value)
             else:
-                print(key, value)
+                print(f'     {key}: {value}')
         print()
 
         # # Placeholder for files
@@ -476,22 +485,15 @@ class WebApp:
         print(f'File Bg: {type(self.fileBg)}\n'
               f'{self.fileBg}\n\n')
 
-
-
+        # Job dependant parameters
         if evalDNA:
-            print('DNA')
-
-            # Process job parameters
-            self.enzymeName = form['enzymeName']
+            self.log('Job: Evaluate DNA')
             self.seq5Prime = form['seq5Prime']
             self.seq3Prime = form['seq3Prime']
-            self.seqLength = int(form['seqLength'])
             self.minPhred = int(form['minPhred']) if form['minPhred'] != '' else 0
-            self.getFilter(form)
-            self.log(f'Dataset Filter: {self.datasetTag}\n\n')
-
-
-
+            self.log(f'5\' Sequence: {self.seq5Prime}\n'
+                     f'3\' Sequence: {self.seq3Prime}\n'
+                     f'Min Phred Score: {self.minPhred}')
         elif fixAA:
             print('Fix AA')
         elif fixMotif:
@@ -499,26 +501,14 @@ class WebApp:
         else:
             print('ERROR: What Script Is Running')
             sys.exit()
-        sys.exit()
 
+        # Complete initialization
+        self.getFilter(form)
+        self.initDataStructures()
 
 
 
     def evalDNA(self):
-        self.log()  # Clear the log
-
-        # Log job params
-        self.log(f'================================== Process DNA '
-                 f'==================================')
-        self.log(f'5\' Sequence: {self.seq5Prime}\n'
-                 f'3\' Sequence: {self.seq3Prime}\n'
-                 f'Sequence Length: {self.seqLength}\n'
-                 f'Min Phred Score: {self.minPhred}')
-
-
-        # Evaluate job params
-        self.initDataStructures()
-
         # Load the data
         threads = []
         queuesExp = []
@@ -607,10 +597,6 @@ class WebApp:
 
 
     def plotCounts(self, countedData, totalCounts, datasetType):
-        print(f'Script: {os.path.basename(__file__)}\n')
-        print(f"Script: {os.path.abspath(__file__)}\n")
-
-
         # Remove commas from string values and convert to float
         countedData = countedData.applymap(lambda x:
                                            float(x.replace(',', ''))
